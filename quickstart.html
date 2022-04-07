@@ -134,6 +134,27 @@
                     <main>
                         <h1><a class="header" href="#quickstart" id="quickstart">QuickStart</a></h1>
 <h2><a class="header" href="#prerequisites" id="prerequisites">Prerequisites</a></h2>
+<p>Since this project is based on KVM, it's desiable to have KVM setup in the development environment.
+In addition, Docker installation is required since the code testing and execution is basically intended to be performed inside a Docker container.</p>
+<h2><a class="header" href="#run-toyvmm" id="run-toyvmm">Run ToyVMM!</a></h2>
+<p>Running <code>make run</code> executes cargo run on the development environment, and running <code>make run_container</code> executes it inside the container. Currently running code equivalent to the example of LWN article 「<a href="https://lwn.net/Articles/658511/">Using the KVM API</a>」and similar to <a href="https://docs.rs/kvm-ioctls/latest/kvm_ioctls/#example---running-a-vm-on-x86_64">kvm_ioctls' example</a></p>
+<pre><code class="language-bash">$ make run
+sudo -E cargo run
+   Compiling bitflags v1.3.2
+   Compiling libc v0.2.121
+   Compiling vmm-sys-util v0.9.0
+   Compiling vm-memory v0.7.0
+   Compiling kvm-bindings v0.5.0
+   Compiling kvm-ioctls v0.11.0
+   Compiling toyvmm v0.1.0 (/home/mmichish/Documents/rust/toyvmm)
+    Finished dev [unoptimized + debuginfo] target(s) in 5.43s
+     Running `target/debug/toyvmm`
+Recieved I/O out exit. Address: 0x3f8, Data(hex): 0x34
+Recieved I/O out exit. Address: 0x3f8, Data(hex): 0xa
+sudo rm -rf target
+</code></pre>
+<h2><a class="header" href="#whats-next" id="whats-next">What's next?</a></h2>
+<p>Check <a href="./01_running_tiny_code_in_vm.html">01. Running Tiny Code in VM</a> for a detailed explanation of the ToyVMM implementation!</p>
 
                     </main>
 

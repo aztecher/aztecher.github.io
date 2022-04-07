@@ -133,6 +133,403 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#01-running-tiny-code-in-vm" id="01-running-tiny-code-in-vm">01. Running Tiny Code in VM</a></h1>
+<p>Tiny code execution is now based on <a href="./quickstart.html">QuickStart</a> content, so please check it first.</p>
+<h3><a class="header" href="#deepdive-toyvmm-instruction-and-how-to-run-tiny-code-in-vm" id="deepdive-toyvmm-instruction-and-how-to-run-tiny-code-in-vm">DeepDive ToyVMM instruction and how to run tiny code in VM</a></h3>
+<p>This <code>main</code> function is a program that starts a VM using the KVM mechanism and executes the following small code inside the VM</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>code = &amp;[
+	0xba, 0xf8, 0x03, /* mov $0x3f8, %dx */
+	0x00, 0xd8,       /* add %bl, %al */
+	0x04, b'0',       /* add $'0', %al */
+	0xee,             /* out %al, (%dx) */
+	0xb0, '\n',       /* mov $'\n', %al */
+	0xee,             /* out %al, (%dx) */
+	0xf4,             /* hlt */
+];
+<span class="boring">}
+</span></code></pre></pre>
+<p>This code perform several register operations, but the initial state of the CPU regisers for this VM is set as follows.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>    regs.rip = 0x1000;
+    regs.rax = 2;
+    regs.rbx = 2;
+    regs.rflags = 0x2;
+    vcpu.set_sregs(&amp;sregs).unwrap();
+    vcpu.set_regs(&amp;regs).unwrap();
+<span class="boring">}
+</span></code></pre></pre>
+<p>This will output the result of calculations (2 + 2) inside the VM from the IO Port, followed by a newline code as well.<br />
+As you can see the result of running ToyVMM, hex value 0x34 (= '4') and 0xa (= New Line) are catched from I/O port</p>
+<h3><a class="header" href="#hows-work-above-code-with-rust-vmm-libraries" id="hows-work-above-code-with-rust-vmm-libraries">How's work above code with rust-vmm libraries</a></h3>
+<p>Now, the following crate provided by rust-vmm is used to run these codes.</p>
+<pre><code class="language-bash"># Please see Cargo.toml
+kvm-bindings
+kvm-ioctls
+vmm-sys-util
+vm-memory
+</code></pre>
+<p>I omit to describe about <a href="https://github.com/rust-vmm/vmm-sys-util">vmm-sys-util</a> because it is only used to create temporary files at this point, so there is nothing special to mention about it.</p>
+<p>I will go through the code in order and describe how each crate is related to that.<br />
+In this explanation, we will focus primary on the perspective of <strong>what ioctl is performed as a result of a function call</strong> (This is because the interface to manipulate KVM from the user space relies on the iocl system call)<br />
+Also, please note that explanations of unimportant variables may be omitted.<br />
+It should be noted that what is described here is not only the ToyVMM implementation, but also the firecracker implementation in a similaer form.</p>
+<p>First, we need to open <code>/dev/kvm</code> and acquire the file descriptor. This can be done by <code>Kvm::new()</code> of <a href="https://github.com/rust-vmm/kvm-ioctls"><code>kvm_ioctls</code></a> crate. Following this process, the <a href="https://github.com/rust-vmm/kvm-ioctls/blob/d12f5776be0937a14da1ad8f9736653e8a2ad5ba/src/ioctls/system.rs#L69-L78"><code>Kvm::open_with_cloexec</code></a> function issues an <code>open</code> system call as follows, returns a file descriptor as <code>Kvm</code> structure</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>let ret = unsafe { open(&quot;/dev/kvm\0&quot;.as_ptr() as *const c_char, open_flags) };
+<span class="boring">}
+</span></code></pre></pre>
+<p>The result obtained from above is used to call the method <code>create_vm</code>, which results in the following <code>ioctl</code> being issued</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>vmfd = ioctl(kvmfd, KVM_CREATE_VM, 0)
+
+where
+  vmfd: from /dev/kvm
+<span class="boring">}
+</span></code></pre></pre>
+<p>Please keep in mind that the file descriptor returned from above function will be used later when preparing the CPU.<br />
+Anyway, we finish to crete a VM but it has no memory, cpu.</p>
+<p>Now, the next step is to prepare memory!
+In <code>kvm_ioctls</code>'s example, memory is prepared as follows</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>// First, setup Guest Memory using mmap
+let load_addr: *mut u8 = unsafe {
+    libc::mmap(
+        null_mut(),
+        mem_size, // 0x4000
+        libc::PROT_READ | libc::PROT_WRITE,
+        libc::MAP_ANONYMOUS | libc::MAP_SHARED | libc::MAP_NORESERVE,
+        -1,
+        0,
+    ) as *mut u8
+};
+
+// Second, setup kvm_userspace_memory_region sructure using above memory
+// kvm_userspace_memory_region is defined in kvm_bindings crate
+let mem_region = kvm_userspace_memory_region {
+    slot,
+    guest_phys_addr: guest_addr,  // 0x1000
+    memory_size: mem_size as u64, // 0x4000
+    userspace_addr: load_addr as u64,
+    flags: KVM_MEM_LOG_DIRTY_PAGES,
+};
+unsafe { vm.set_user_memory_region(mem_region).unwrap() };
+
+// retrieve slice from pointer and length (slice::form_raw_parts_mut)
+//   &gt; https://doc.rust-lang.org/beta/std/slice/fn.from_raw_parts_mut.html
+// and write asm_code into this slice (&amp;[u8], &amp;mut [u8], Vec&lt;u8&gt; impmenent the Write trait!)
+//   &gt; https://doc.rust-lang.org/std/primitive.slice.html#impl-Write
+unsafe {
+    let mut slice = slice::from_raw_parts_mut(load_addr, mem_size);
+    slice.write(&amp;asm_code).unwrap();
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Check <code>set_user_memory_region</code>. This function will issue the following ioctl as a result, attach the memory to VM</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>ioctl(vmfd, KVM_SET_USER_MEMORY_REGION, &amp;mem_region)
+<span class="boring">}
+</span></code></pre></pre>
+<p>ToyVMM, on the other hand, provides a utility functions for memory preparation.<br />
+This difference is due to the fact that ToyVMM's implementation is similaer to firecracker's, but they are essentially doing the same thing.</p>
+<p>Let's look at the whole implementation first</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>// The following `create_region` functions operate based on file descriptor, so first, create a temporary file and write asm_code to it.
+let mut file = TempFile::new().unwrap().into_file();
+assert_eq!(unsafe { libc::ftruncate(file.as_raw_fd(), 4096 * 10) }, 0);
+let code: &amp;[u8] = &amp;[
+    0xba, 0xf8, 0x03, /* mov $0x3f8, %dx */
+    0x00, 0xd8,       /* add %bl, %al */
+    0x04, b'0',       /* add $'0', %al */
+    0xee,             /* out %al, %dx */
+    0xb0, b'\n',      /* mov $'\n', %al */
+    0xee,             /* out %al, %dx */
+    0xf4,             /* hlt */
+];
+file.write_all(code).expect(&quot;Failed to write code to tempfile&quot;);
+
+// create_region funcion create GuestRegion (The details are described in the following)
+let mut mmap_regions = Vec::with_capacity(1);
+let region = create_region(
+    Some(FileOffset::new(file, 0)),
+    0x1000,
+    libc::PROT_READ | libc::PROT_WRITE,
+    libc::MAP_NORESERVE | libc::MAP_PRIVATE,
+    false,
+).unwrap();
+
+// Vec named 'mmap_regions' contains the entry of GuestRegionMmap
+mmap_regions.push(GuestRegionMmap::new(region, GuestAddress(0x1000)).unwrap());
+
+// guest_memory represents as the vec of GuestRegion
+let guest_memory = GuestMemoryMmap::from_regions(mmap_regions).unwrap();
+let track_dirty_page = false;
+
+// setup Guest Memory
+vm.memory_init(&amp;guest_memory, kvm.get_nr_memslots(), track_dirty_page).unwrap();
+<span class="boring">}
+</span></code></pre></pre>
+<p>The <code>create_vm</code> consequently performs a mmap in the following way and returns a part of the structure (GuestMmapRegion) representing the GuestMemory</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>pub fn create_region(
+    maybe_file_offset: Option&lt;FileOffset&gt;,
+    size: usize,
+    prot: i32,
+    flags: i32,
+    track_dirty_pages: bool,
+) -&gt; Result&lt;GuestMmapRegion, MmapRegionError&gt; {
+
+...
+
+let region_addr = unsafe {
+    libc::mmap(
+        region_start_addr as *mut libc::c_void,
+        size,
+        prot,
+        flags | libc::MAP_FIXED,
+        fd,
+        offset as libc::off_t,
+    )
+};
+let bitmap = match track_dirty_pages {
+    true =&gt; Some(AtomicBitmap::with_len(size)),
+    false =&gt; None,
+};
+unsafe {
+    MmapRegionBuilder::new_with_bitmap(size, bitmap)
+        .with_raw_mmap_pointer(region_addr as *mut u8)
+        .with_mmap_prot(prot)
+        .with_mmap_flags(flags)
+        .build()
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Let's check the structure about Memory here.
+In <code>src/kvm/memory.rs</code>, the following Memory structure is defined based on <a href="https://github.com/rust-vmm/vm-memory">vm-memory</a> crate</p>
+<pre><code>pub type GuestMemoryMmap = vm_memory::GuestMemoryMmap&lt;Option&lt;AtomicBitmap&gt;&gt;;
+pub type GuestRegionMmap = vm_memory::GuestRegionMmap&lt;Option&lt;AtomicBitmap&gt;&gt;;
+pub type GuestMmapRegion = vm_memory::MmapRegion&lt;Option&lt;AtomicBitmap&gt;&gt;;
+</code></pre>
+<p>The <code>MmapRegionBuilder</code> is also defined in the <code>vm-memory</code> crate, and this <code>build</code> method creates the <code>MmapRegion</code>.</p>
+<p>This time, since we have performed the mmap myself in advance and passed that address to <code>with_raw_mmap_pointer</code>, <a href="https://github.com/rust-vmm/vm-memory/blob/f6ef1b619b126324830c87a3554b7082a0490ae0/src/mmap_unix.rs#L145-L147">use that area to initialize</a>. Otherwise, <a href="https://github.com/rust-vmm/vm-memory/blob/f6ef1b619b126324830c87a3554b7082a0490ae0/src/mmap_unix.rs#L164-L173">mmap is performed in the <code>build</code> method</a>. In any case, this <code>build</code> method will get the <code>MmapRegion</code> structure, but defines a synonym as described above, which is returned as the <code>GuestMmapRegion</code>. By calling the <code>create_region</code> function once, you can allocate and obtain one region of GuestMemory based on the information(<code>size</code>, <code>flags</code>, ...etc) specified in the argument.</p>
+<p>The region allocated here is only mmapped from the virtual address space of the VMM process, and no further information is available. To use this area as Guest Memory, a <code>GuestRegionMmap</code> structure is created from this area. This is simple, specify the corresponding <code>GuestAddress</code> for this region and initialize <code>GuestRegionMmap</code> with a tuple of mmapped area and GuestAddress. In following code, the initialized <code>GuestRegionMmap</code> is pushed to Vec for subsequent processing.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>map_regions.push(GuestRegionMmap::new(region, GuestAddress(0x1000)).unwrap());
+<span class="boring">}
+</span></code></pre></pre>
+<p>Now, the <code>mmap_regions: Vec&lt;GuestRegionMmap&gt;</code> created as above represents the entire memory of the Guest VM, and each region that makes up the guest memory holds information on the area allocated by the VMM for the region and the top address of the Guest side.
+The <code>GuestMemoryMmap</code> structure representing the Guest Memory is initialized from this Vec information and set to VM by the <code>memory_init</code> method.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>let guest_memory = GuestMemoryMmap::from_regions(mmap_regions).unwrap();
+vm.memory_init(&amp;guest_memory, kvm.get_nr_memslots(), track_dirty_page).unwrap();
+<span class="boring">}
+</span></code></pre></pre>
+<p>Next, let's check the operation of this <code>memory_init</code>. This calls <code>set_kvm_memory_regions</code> and the actual process is described there.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>pub fn set_kvm_memory_regions(
+    &amp;self,
+    guest_mem: &amp;GuestMemoryMmap,
+    track_dirty_pages: bool,
+    ) -&gt; Result&lt;()&gt; {
+    let mut flags = 0u32;
+    if track_dirty_pages {
+        flags |= KVM_MEM_LOG_DIRTY_PAGES;
+    }
+    guest_mem
+        .iter()
+        .enumerate()
+        .try_for_each(|(index, region)| {
+            let memory_region = kvm_userspace_memory_region {
+                slot: index as u32,
+                guest_phys_addr: region.start_addr().raw_value() as u64,
+                memory_size: region.len() as u64,
+                userspace_addr: guest_mem.get_host_address(region.start_addr()).unwrap() as u64,
+                flags,
+            };
+            unsafe { self.fd.set_user_memory_region(memory_region) }
+        })
+    .map_err(Error::SetUserMemoryRegion)?;
+    Ok(())
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Here we can see that <code>set_user_memory_region</code> is called using the necessary information while iterating the region.
+In other words, it is processing the same as the example code except that there may be more than one region.</p>
+<p>Now that we've gone through the explanation of memory preparation, let's take a look at the <code>vm-memory</code> crate!
+The information presented here is only the minimum required, so please refer to <a href="https://github.com/rust-vmm/vm-memory/blob/main/DESIGN.md">Design</a> or other sources for more details.
+This will also be related to the above iteration, where we were able to call methods such as <code>sart_addr()</code> and <code>len()</code> to construct the necessary information for <code>set_user_memory_region</code>.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>GuestAddress (struct) : Represent Guest Physicall Address (GPA)
+FileOffset(struct) : Represents the start point within a 'File' that backs a 'GuestMemoryRegion'
+
+GuestMemoryRegion(trait) : Represents a continuous region of guest physical memory / trait
+GuestMemory(trait) : Represents a container for a immutable collection of GuestMemoryRegion object / trait
+
+MmapRegion(struct) : Helper structure for working with mmaped memory regions
+GuestRegionMmap(struct &amp; implement GuestMemoryRegion trait) : Represents a continuous region of the guest's physical memory that is backed by a mapping in the virtual address space of the calling process
+GuestMemoryMmap(struct &amp; implement GuestMemory trait) : Represents the entire physical memory of the guest by tracking all its memory regions
+<span class="boring">}
+</span></code></pre></pre>
+<p><a href="https://github.com/rust-vmm/vm-memory/blob/f6ef1b619b126324830c87a3554b7082a0490ae0/src/mmap.rs#L436">Since <code>GuestRegionMmap</code> implements the <code>GuestMemoryRegion</code> trait</a>, there are implementations of functions such as <code>start_addr()</code> and <code>len()</code>, which were used in the above interation.
+The following figure briefly summarizes the relationship between these structures</p>
+<p><img src="./vm-memory_overview.svg" alt="vm-memory_overview" /></p>
+<p>As you can see, what is being done is essentially the same.</p>
+<p>The final step is prepareing vCPU (vCPU is a CPU to be attached to a virtual machine).<br />
+Currently, a VM has been created and memory containing instructions has been inserted, but these is no CPU, so the instructions can't be executed. Therefore, let's create a vCPU, associate it with the VM, and execute the instruction by running the vCPU!</p>
+<p>Using the file descriptor obtained during VM creaion (<code>vmfd</code>), the resulting <code>ioctl</code> will be issued as follows.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>vcpufd = ioctl(vmfd, KVM_CREATE_VCPU, 0)
+<span class="boring">}
+</span></code></pre></pre>
+<p>The <code>create_vm</code> method that was just issued to obtain the <code>vmfd</code> is designed to return a <code>kvm_ioctls::VmFd</code> strucure as a result, and by execuing the <code>create_vcpu</code> method, which is a method of this structure, the above ioctl is consequently issued and returns the result as a <code>kvm_ioctls::VcpuFd</code> structure.</p>
+<p><code>VcpuFd</code> provides utilities for getting and setting various CPU states.<br />
+For example, if you want o get/set a register set from the vCPU, you would normally issue the following <code>ioctl</code></p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>ioctl(vcpufd, KVM_GET_SREGS, &amp;sregs);
+ioctl(vcpufd, KVM_SET_SREGS, &amp;sregs);
+<span class="boring">}
+</span></code></pre></pre>
+<p>For these, the following methods are available in <code>kvm_ioctls::VcpuFd</code></p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>get_sregs(&amp;self) -&gt; Result&lt;kvm_sregs&gt;
+set_sregs(&amp;self, sregs: &amp;kvm_sregs) -&gt; Result&lt;()&gt;
+<span class="boring">}
+</span></code></pre></pre>
+<p><code>VcpuFd</code> also provids a method called <code>run</code>, which issues the following insructions to actually run the vCPU.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>ioctl(vcpufd, KVM_RUN, NULL)
+<span class="boring">}
+</span></code></pre></pre>
+<p>and then, we can aquire return values that has the type <code>Result&lt;VcpuExit&gt;</code> resulting this method.</p>
+<p>When running vCPU, exit occurs for various reasons. This is an instruction that the CPU cannot handle, and the OS usually tries to deal with it by invoking the corresponding handler.<br />
+If this type of exit comes back from the VM's vCPU, as in the case, it will be necessary to write the appropriate code to handle the situation.<br />
+<code>VcpuExit</code> is defined in <code>kvm_ioctls::VcpuExit</code> as enum.<br />
+When Exit are occurred on several reasons in running vCPU, the exit reasons that are defined in kvm.h in linux kernel are wrapped to <code>VcpuExit</code>.<br />
+Therefore, it is sufficient to write a process that pattern matches this result and appropriately handles the error to be handled.</p>
+<p>Now, there is a instruction that execute outputting values through I/O port and this will occur the <code>KVM_EXIT_IO_OUT</code>.<br />
+<code>VcpuExit</code> wrap this exit reason as <code>IoOut</code>.</p>
+<p>Originally (in C programm as example), we require to calculate appropriate offset to get output data from I/O port, but now, this process are implemented in <code>run</code> method and returned as VcpuExit that contains necessary values.<br />
+So, we don't have to write these unsafe code (pointer offset calculation) and handle these exit as you will.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>loop {
+    match vcpu.run().expect(&quot;vcpu run failed&quot;) {
+        kvm_ioctls::VcpuExit::IoOut(addr, data) =&gt; {
+            println!(
+                &quot;Recieved I/O out exit. \
+                Address: {:#x}, Data(hex): {:#x}&quot;,
+                addr, data[0],
+            );
+        },
+        kvm_ioctls::VcpuExit::Hlt =&gt; {
+            break;
+        }
+        exit =&gt; panic!(&quot;unexpected exit reason: {:?}&quot;, exit),
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>In above, only handle <code>KVM_EXIT_IO_OUT</code> and <code>KVM_EXIT_HLT</code>, and the others will be processed as panic. (Although all exits should be handled, I want to focus on the description of KVM API example and keep it simply)</p>
+<p>Since we are here, let's take a look at the processing of the <code>run</code> method in some detail.<br />
+Let's check the processing of <code>KVM_EXIT_IO_OUT</code>.</p>
+<p>If you look at the <a href="https://lwn.net/Articles/658511/">LWN article</a>, you will see that it calculates the offset and outputs the necessary information in the following way.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>case KVM_EXIT_IO:
+    if (run-&gt;io.direction == KVM_EXIT_IO_OUT &amp;&amp;
+	    run-&gt;io.size == 1 &amp;&amp;
+	    run-&gt;io.port == 0x3f8 &amp;&amp;
+	    run-&gt;io.count == 1)
+	putchar(*(((char *)run) + run-&gt;io.data_offset));
+    else
+	errx(1, &quot;unhandled KVM_EXIT_IO&quot;);
+    break;
+<span class="boring">}
+</span></code></pre></pre>
+<p>On the other hand, <code>run</code> method implemented in <code>kvm_ioctl::VcpuFd</code> is like bellow</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>...
+let run = self.kvm_run_ptr.as_mut_ref();
+match run.exit_reason {
+    ...
+    KVM_EXIT_IO =&gt; {
+        let run_start = run as *mut kvm_run as *mut u8;
+        // Safe because the exit_reason (which comes from the kernel) told us which
+        // union field to use.
+        let io = unsafe { run.__bindgen_anon_1.io };
+        let port = io.port;
+        let data_size = io.count as usize * io.size as usize;
+        // The data_offset is defined by the kernel to be some number of bytes into the
+        // kvm_run stucture, which we have fully mmap'd.
+        let data_ptr = unsafe { run_start.offset(io.data_offset as isize) };
+        // The slice's lifetime is limited to the lifetime of this vCPU, which is equal
+        // to the mmap of the `kvm_run` struct that this is slicing from.
+        let data_slice = unsafe {
+            std::slice::from_raw_parts_mut::&lt;u8&gt;(data_ptr as *mut u8, data_size)
+        };
+        match u32::from(io.direction) {
+            KVM_EXIT_IO_IN =&gt; Ok(VcpuExit::IoIn(port, data_slice)),
+            KVM_EXIT_IO_OUT =&gt; Ok(VcpuExit::IoOut(port, data_slice)),
+            _ =&gt; Err(errno::Error::new(EINVAL)),
+        }
+    }
+		...
+<span class="boring">}
+</span></code></pre></pre>
+<p>Let me explain a little. The <code>kvm_run</code> is provided by the <a href="https://github.com/rust-vmm/kvm-bindings"><code>kvm-bindings</code></a> crate, which is a structure automatically generated from a header file using <a href="https://github.com/rust-lang/rust-bindgen"><code>bindgen</code></a>, so it is a structure like the linux kernel's <code>kvm_run</code> converted directory to Rust.<br />
+First, <code>kvm_run</code> is obtained in the form of a pointer, a method of obtaining a pointer often used in Rust.<br />
+This correspoinds to the first address of the <code>kvm_run</code> structure which is bound to <code>run_start</code> variable.<br />
+And the information corresponding to <code>run-&gt;io(.member)</code> can be obtained from <code>run.__bindgen_anon_1.io</code>, although it is a bit tricky. The field named <code>__bindgen_anon_1</code> is the effect of automatic generation by <code>bindgen</code>.<br />
+The data we want is at the first address of <code>kvm_run</code> plus <code>io.data_offset</code>. This process is performed in <code>run_start.offset(io.data_offset as isize)</code>. And the data size can be calculated from <code>io-&gt;size</code> and <code>io-&gt;count</code> (in the LWN example, it is 1byte, so it's taken directory from the offset by putchar). This part is calculated and stored in the value <code>data_size</code>, and <code>std::slice::from_raw_parts_mut</code> actually retrieves the data using this size.<br />
+Finally, checking <code>io.direction</code>, we change the wrap type for <code>KVM_EXIT_IO_IN</code> or <code>KVM_EXIT_IO_OUT</code> respectively, and return the descired information such as <code>port</code> and <code>data_slice</code> together.</p>
+<p>As can be seen from the above, what is being done is clear.<br />
+However, it still contains many unsafe operations because it involves pointer manipuration.<br />
+We can see that by using these libraries, we are able to implement VMM on a stable implementation.</p>
+<p>Well, it's ben a long time comming, but let's take a look back at the rust-vmm crates we're using again.</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>kvm-bindings : Library that includes structures automatically generated from kvm.h by bindgen.
+kvm-ioctls : Library that hides ioctl and unsafe processes related to kvm operations and provides user-friendly sructures, functions and methods.  
+vm-memory : Library that provides structures and operations to the Memory
+<span class="boring">}
+</span></code></pre></pre>
+<p>This knowledge will come up again and again in future discussion and is basic and important.</p>
 
                     </main>
 
