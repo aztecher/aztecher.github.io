@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Introduction - toyvmm book</title>
+        <title>02-6. ToyVMM implementation - toyvmm book</title>
                 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html"><strong aria-hidden="true">2.</strong> QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html"><strong aria-hidden="true">3.</strong> Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html"><strong aria-hidden="true">4.</strong> Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html"><strong aria-hidden="true">4.1.</strong> 02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html"><strong aria-hidden="true">4.2.</strong> 02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_loading_initrd.html"><strong aria-hidden="true">4.3.</strong> 02-3. Loading initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html"><strong aria-hidden="true">4.4.</strong> 02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html"><strong aria-hidden="true">4.5.</strong> 02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html"><strong aria-hidden="true">4.6.</strong> 02-6. ToyVMM implementation</a></li></ol></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html"><strong aria-hidden="true">2.</strong> QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html"><strong aria-hidden="true">3.</strong> Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html"><strong aria-hidden="true">4.</strong> Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html"><strong aria-hidden="true">4.1.</strong> 02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html"><strong aria-hidden="true">4.2.</strong> 02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_loading_initrd.html"><strong aria-hidden="true">4.3.</strong> 02-3. Loading initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html"><strong aria-hidden="true">4.4.</strong> 02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html"><strong aria-hidden="true">4.5.</strong> 02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html" class="active"><strong aria-hidden="true">4.6.</strong> 02-6. ToyVMM implementation</a></li></ol></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -143,29 +143,110 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<h2 id="what-is-toyvmm"><a class="header" href="#what-is-toyvmm">What is ToyVMM?</a></h2>
-<p>ToyVMM is a project being developed for the purpose of learning virtualization technology.
-ToyVMM aims to accomplish the following</p>
-<p>Code-based understanding of KVM-based virtualization technologies
-Learn about the modern virtualization technology stack by using libraries managed by rust-vmm
-The rust-vmm libraries are also used as a base for well-known OSS such as firecracker and provides the functionality needed to create custom VMMs.</p>
-<h2 id="disclaimer"><a class="header" href="#disclaimer">Disclaimer</a></h2>
-<p>While every effort has been made to provide correct information in this publication, the authors do not necessarily guarantee that all information is accurate.
-Therefore, the authors cannot be held responsible for the results of development, prototyping, or operation based on this information.
-If you find any errors in the contents of this document, please correct or report them as PR or Issue.</p>
-<h2 id="whats-next"><a class="header" href="#whats-next">What's Next?</a></h2>
-<p>If you would like to try ToyVMM first, please refer to <a href="./quickstart.html">QuickStart</a>.
-To learn more about KVM-based virtualization through ToyVMM, please refer to <a href="./01_running_tiny_code_in_vm.html">01. Running Tiny Code in VM</a></p>
+                        <h1 id="toyvmm-implememtation"><a class="header" href="#toyvmm-implememtation">ToyVMM implememtation</a></h1>
+<p>これまでの話を合わせると、必要最低限の機能を保有したVMMが作成できる。<br />
+このToyVMMは以下の機能を持っているシンプルなVMMである</p>
+<ul>
+<li>vmlinuz, initrdを利用して、Guest OSを起動できる</li>
+<li>Guest OS起動後はSerial Terminalとして入出力を受け、Guestの状態確認や操作を実施することができる。</li>
+</ul>
+<h2 id="run-linux-kernel-"><a class="header" href="#run-linux-kernel-">Run linux kernel !</a></h2>
+<p>実際にLinux Kernelを起動する</p>
+<p>まずは、<code>vmlinux.bin</code>と<code>initrd.img</code>を用意します。いずれもtoyvmmのリポジトリルートに配置する。
+<code>vmlinux.bin</code>は以下を参考にダウンロードする</p>
+<pre><code class="language-bash"># Download vmlinux.bin
+wget https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/kernels/vmlinux.bin
+cp vmlinux.bin &lt;TOYVMM WORKING DIRECTORY&gt;
+</code></pre>
+<p><code>initrd.img</code>は、<a href="https://github.com/marcov/firecracker-initrd.git">marcov/firecracker-initrd</a>を利用し、alpineのrootfsを含むinitrd.imgを作成する。</p>
+<pre><code class="language-bash"># Create initrd.img
+# Using marcov/firecracker-initrd (https://github.com/marcov/firecracker-initrd)
+git clone https://github.com/marcov/firecracker-initrd.git
+cd firecracker-initrd
+bash ./build.sh
+# After above commands, initrd.img file wil be located on build/initrd.img.
+# So, please move it to the working directory of toyvmm.
+cp build/initrd.img &lt;TOYVMM WORKING DIRECTORY&gt;
+</code></pre>
+<p>以上で準備完了ある。以下のコマンドを実行しGuest VMを起動してみよう！</p>
+<pre><code class="language-bash">$ make run_linux
+</code></pre>
+<p>ここではブートシーケンスの出力については省略する。Guest VMの起動シーケンスが標準出力に表示されていくだろう。
+起動が完了すると、以下のようにAlpine Linuxの画面とともにloginが要求されるため、root/rootでログインしよう.</p>
+<pre><code class="language-bash">Welcome to Alpine Linux 3.15
+Kernel 4.14.174 on an x86_64 (ttyS0)
+
+(none) login: root
+Password:
+Welcome to Alpine!
+
+The Alpine Wiki contains a large amount of how-to guides and general
+information about administrating Alpine systems.
+See &lt;http://wiki.alpinelinux.org/&gt;.
+
+You can setup the system with the command: setup-alpine
+
+You may change this message by editing /etc/motd.
+
+login[1058]: root login on 'ttyS0'
+(none):~#
+</code></pre>
+<p>素晴らしい！確かにGuest VMを起動し操作できています！
+もちろん、Guest VM内部でコマンドを実行することもできます。<br />
+例えば最も基本的なlsコマンドを実行した結果は以下のようになります。</p>
+<pre><code class="language-bash">(none):~# ls -lat /
+total 0
+drwx------    3 root     root            80 Sep 23 06:44 root
+drwxr-xr-x    5 root     root           200 Sep 23 06:44 run
+drwxr-xr-x   19 root     root           400 Sep 23 06:44 .
+drwxr-xr-x   19 root     root           400 Sep 23 06:44 ..
+drwxr-xr-x    7 root     root          2120 Sep 23 06:44 dev
+dr-xr-xr-x   12 root     root             0 Sep 23 06:44 sys
+dr-xr-xr-x   55 root     root             0 Sep 23 06:44 proc
+drwxr-xr-x    2 root     root          1780 May  7 00:55 bin
+drwxr-xr-x   26 root     root          1040 May  7 00:55 etc
+lrwxrwxrwx    1 root     root            10 May  7 00:55 init -&gt; /sbin/init
+drwxr-xr-x    2 root     root          3460 May  7 00:55 sbin
+drwxr-xr-x   10 root     root           700 May  7 00:55 lib
+drwxr-xr-x    9 root     root           180 May  7 00:54 usr
+drwxr-xr-x    2 root     root            40 May  7 00:54 home
+drwxr-xr-x    5 root     root           100 May  7 00:54 media
+drwxr-xr-x    2 root     root            40 May  7 00:54 mnt
+drwxr-xr-x    2 root     root            40 May  7 00:54 opt
+drwxr-xr-x    2 root     root            40 May  7 00:54 srv
+drwxr-xr-x   12 root     root           260 May  7 00:54 var
+drwxrwxrwt    2 root     root            40 May  7 00:54 tmp
+</code></pre>
+<p>お疲れ様でした。ひとまずここまで来ればminimal VMMと言って良いものではないかと思います。
+とはいえ現状以下のような問題点があります</p>
+<ul>
+<li>serialコンソール経由でしか操作できない -&gt; virtio-netを実装したい</li>
+<li>virtio-blkを実装したい</li>
+<li>PCIデバイスを扱えていない</li>
+</ul>
+<p>実は、ToyVMMを作成し始めた個人的な目的の一つとしては以下のような目標がありました。</p>
+<ul>
+<li>virtualizationの理解を深める</li>
+<li>virtioについて理解を深める</li>
+<li>pci passthroughについて理解を深める
+<ul>
+<li>vfioなどの技術について詳細を知る</li>
+<li>mdev/libvfio/vdpaなどの周辺技術について知る</li>
+</ul>
+</li>
+</ul>
+<p>MinimalなVMMの作成は完了しましたが、この先VMMとしてどのように成長させていくかというのは人それぞれで多くの選択肢があると思います
+ToyVMMでは今後上記のようなtopicについて扱っていきたいと考えています！
+ToyVMMをベースにして別の方向に拡張するというのも面白いでしょう。もしこれを読んでくれているGeekがいればぜひ挑戦してください。そしてもしよければToyVMMにもfeedbackしてくれると大変嬉しく思います。</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                        
-                                                    <a rel="next" href="quickstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                                    <a rel="prev" href="02-5_serial_console_implementation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
                             </a>
+                        
                         
                         <div style="clear: both"></div>
                     </nav>
@@ -173,10 +254,10 @@ To learn more about KVM-based virtualization through ToyVMM, please refer to <a 
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                
-                                    <a rel="next" href="quickstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                                    <a rel="prev" href="02-5_serial_console_implementation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
                     </a>
+                
                             </nav>
 
         </div>
