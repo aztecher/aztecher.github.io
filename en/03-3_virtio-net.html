@@ -1,0 +1,385 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>03-3. Implement virtio-net device - toyvmm book (en)</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html" class="active">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">toyvmm book (en)</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/aztecher/toyvmm" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="implement-virtio-net-device"><a class="header" href="#implement-virtio-net-device">Implement virtio-net device</a></h1>
+<p>In this section, we will proceed with the implementation of a Network Device as a specific Virtio Device. While the specification can be found in the official OASIS documentation <a href="https://docs.oasis-open.org/virtio/virtio/v1.2/cs01/virtio-v1.2-cs01.html#x1-2170001">Network Device</a>, please note that this implementation may not align perfectly with the specification. If you haven't read the previous sections, be sure to review them before continuing with this section.</p>
+<h3 id="virtio-net-mechanism"><a class="header" href="#virtio-net-mechanism">virtio-net Mechanism</a></h3>
+<p>In <code>virtio-net</code>, three types of Virtqueues are typically used: Transmit Queue, Receive Queue, and Control Queue.
+The Transmit Queue is used for data transmission from the guest to the host, the Receive Queue for data transmission from the host to the guest. The Control Queue is used for guest-to-host operations related to NIC settings, such as setting promiscuous mode, enabling/disabling broadcast reception, and multicast reception.
+For the sake of brevity, we are omitting the implementation of the Control Queue in this section. It is worth noting that the specification allows scaling the number of Virtqueues, but for simplicity, we are not implementing that.</p>
+<p>In the following sections, we will provide detailed implementation-based explanations of the network device.</p>
+<h3 id="network-device-implementation-details"><a class="header" href="#network-device-implementation-details">Network Device Implementation Details</a></h3>
+<p>The implementation of <code>virtio-net</code> can be found in <code>net.rs</code>.
+We will break down and explain the initialization phase and the post-initialization phase.</p>
+<p>The following diagram primarily focuses on the initialization process of the Network Device:</p>
+<div align="center">
+<img src="../03_figs/net-device_init_activate.svg", width="80%">
+</div>
+<p>The <code>Net</code> struct implements the <code>VirtioDevice</code> Trait and is associated with the <code>MmioTransport</code>. As mentioned earlier, device-specific operations during MMIO Transport initialization depend on the implementation of this <code>Net</code> struct.</p>
+<p>For example, during initialization, a query about the <code>Device Type</code> occurs. According to the specification, for a <code>Net</code> device, this should return <code>0x01</code>, and the <code>Net</code> struct implements it as follows:</p>
+<pre><code class="language-Rust">impl VirtioDevice for Net {
+    fn device_type(&amp;self) -&gt; u32 {
+        // types::NETWORK_CARD:u32 = 0x01
+        types::NETWORK_CARD
+    }
+    ...
+}
+</code></pre>
+<p>Similarly, queries about the <code>Device Feature</code> should be implemented to return device-specific values. Additionally, during initialization, the guest OS initializes the <code>Descriptor Table</code>, <code>Available Ring</code>, and <code>Used Ring</code> of the Virtqueues, and the addresses for each of these are notified. This allows the addresses to be stored for each queue so they can be referenced during actual processing.
+Once the initialization steps are completed and the status is updated to a specific value, ToyVMM executes the <code>activate</code> function implemented in the device. In the case of the <code>Net</code> device, within this <code>activate</code> function, various file descriptors are registered with <code>epoll</code>, and the setup of handlers (e.g., <code>NetEpollHandler</code>) triggered by <code>epoll</code> is performed. The <code>Net</code> device emulates I/O by creating a Tap device on the host side and writing data received from the guest via Virtqueue to the Tap device for transmission (<code>Tx</code>), and writing incoming data from the Tap device to Virtqueue to notify the guest (<code>Rx</code>). Four file descriptors are registered with <code>epoll</code>: the <code>fd</code> of the <code>tap</code> device, an <code>eventfd</code> for notification of the Tx Virtqueue, an <code>eventfd</code> for notification of the Rx Virtqueue, and an <code>eventfd</code> for halting in unexpected situations.</p>
+<p>Next, we will provide a detailed diagram of the Network Device in its activated state:</p>
+<div align="center">
+<img src="../03_figs/net-device_activated.svg", width="100%">
+</div>
+<p>When one of the registered file descriptors in <code>epoll</code> triggers an event, it dispatches the <code>NetEpollHandler</code> for event processing. <code>NetEpollHandler</code> varies its actions based on the event triggered. In any case, within the <code>NetEpollHandler</code>, it references the Virtqueue and performs I/O emulation.</p>
+<p>One important point to note is that the initialization process of the device, based on <code>KVM_EXIT_MMIO</code>, is a processing call within the thread handling vCPU. In ToyVMM, this is done in a separate thread from the main thread. However, the thread responsible for executing I/O is also separate from the vCPU processing thread (currently handled in the main thread). To facilitate communication between these threads, channels are used to send the initialized <code>NetEpollHandler</code>. This allows I/O to be processed while the guest VM is running and CPU emulation is conducted in a separate thread.</p>
+<p>As mentioned earlier, communication between the host and guest is primarily triggered by events related to Virtqueue Eventfds and Tap device file descriptors. In the following sections, we will provide more detailed explanations of how processing occurs in both the Tx and Rx cases.</p>
+<h4 id="tx-guest---host"><a class="header" href="#tx-guest---host">Tx (Guest -&gt; Host)</a></h4>
+<p>Let's start by examining the implementation of communication in the Guest -&gt; Host direction (Tx) and provide a detailed explanation. Once again, for Tx, the <code>Descriptor Table</code>, <code>Available Ring</code>, and <code>Used Ring</code> function as follows:</p>
+<ul>
+<li><code>Descriptor Table</code>: It contains descriptors that point to the data the Guest is trying to transmit.</li>
+<li><code>Available Ring</code>: It stores the index of the descriptor pointing to the transmit data. The Host reads this index and processes Tx emuration.</li>
+<li><code>Used Ring</code>: It stores the index of descriptors that have been processed on the Host side. The Guest reads this index to collect processed descriptors.</li>
+</ul>
+<p>Tx initiates when the guest (guest device driver) prepares a packet, and control is transferred to ToyVMM when a Write operation occurs on <code>QueueNotify</code>.</p>
+<p>Specifically, in the guest, the following steps are expected:</p>
+<ol>
+<li>The guest sets the data address and length in the first Descriptor's <code>addr</code> and <code>len</code> fields.</li>
+<li>The guest stores the index of the <code>Descriptor</code> pointing to the transmit data in the <code>Available Ring</code> entry, pointed to by the <code>Available Ring</code> index.</li>
+<li>The guest increments the <code>Available Ring</code> index.</li>
+<li>To notify the host of unprocessed data, the guest writes to the MMIO <code>QueueNotify</code>.</li>
+</ol>
+<p>Now, let's shift our focus to the host side, which is handled by ToyVMM. The EventFd triggered by the write to MMIO's <code>QueueNotify</code> is picked up by epoll monitoring. It triggers the NetEpollHandle's handler processing, specifically, the execution of the <code>TX_QUEUE_EVENT</code> corresponding operation.</p>
+<div align="center">
+<img src="../03_figs/net-device_tx_1.svg", width="100%">
+</div>
+<p>The implementation calls the <code>process_tx</code> function.<br />
+In <code>process_tx</code>, the processing proceeds as follows:</p>
+<ol>
+<li>Initialization of necessary variables, including:
+<ul>
+<li><code>frame[0u8; 65562]</code>: A buffer to copy the data prepared by the guest.</li>
+<li><code>used_desc_heads[0u16; 256]</code>: Data for storing the index of processed Descriptors and for updating the Used Ring at the end.</li>
+<li><code>used_count</code>: A counter to keep track of how much data has been read from the guest.</li>
+</ul>
+</li>
+<li>Iteration over the TX Virtqueue until it stops, repeating steps 3 to 5.</li>
+<li>Reading the data information (located at <code>addr</code>) pointed to by the Descriptor and loading it into the buffer. If the <code>next</code> field points to another Descriptor, it is followed, and the data is read out.</li>
+<li>Writing the read data to the Tap device.</li>
+<li>Storing the index of processed Descriptors (the Descriptor pointed to by the Available Ring) in <code>used_desc_heads</code>.</li>
+<li>Updating the <code>Used Ring</code> with the information of processed Descriptors' indexes and the total amount of data stored.</li>
+<li>Writing to the <code>eventfd</code> associated with the irq to trigger an interrupt and delegate processing to the guest.</li>
+</ol>
+<div align="center">
+<img src="../03_figs/net-device_tx_2.svg", width="100%">
+</div>
+<p>On the guest side, the following steps are expected:</p>
+<ol>
+<li>Check the index of the <code>Used Ring</code>, and if there is a difference between the index of processed entries and the previously recorded index, check and process the Descriptor indexes to fill this gap.</li>
+<li>The Descriptors pointed to by these Descriptor indexes have been processed on the host side, so they are returned to the chain of free Descriptors, and the recorded Descriptor numbers are updated.</li>
+<li>Repeat steps 1 and 2 until there is no difference between the index of the <code>Used Ring</code> and the recorded index position.</li>
+</ol>
+<p>This completes the Tx processing.</p>
+<h4 id="rx-host---guest"><a class="header" href="#rx-host---guest">Rx (Host -&gt; Guest)</a></h4>
+<p>Next, let's explain the communication from the host to the guest (Rx) while referring to the implementation.
+In the case of Rx, the <code>Descriptor Table</code>, <code>Available Ring</code>, and <code>Used Ring</code> function as follows:</p>
+<ul>
+<li><code>Descriptor Table</code>: It contains descriptors that point to received data, allowing the Guest to access the received data from the Tap.</li>
+<li><code>Available Ring</code>: It is used for the transfer of completed empty descriptors from the Guest's side.</li>
+<li><code>Used Ring</code>: It stores the index of descriptors pointing to received data, which the Guest reads to process the necessary descriptors.</li>
+</ul>
+<p>Comparing Rx to Tx, you can see that the roles of the <code>Available Ring</code> and <code>Used Ring</code> are reversed.</p>
+<p>Unlike Tx, Rx requires handling two types of event triggers: incoming packets from the Tap device and completion notifications from the guest for the Rx Virtqueue. Handling Rx is more complex compared to Tx due to the need to manage these two types of event triggers.</p>
+<p>First, let's discuss the basic Rx processing flow, followed by considerations for cooperative behavior.</p>
+<h5 id="basic-rx-processing-flow"><a class="header" href="#basic-rx-processing-flow">Basic Rx Processing Flow</a></h5>
+<p>The host receives data from the Tap device and needs to notify the guest by filling the Rx Virtqueue with data. To do this, some basic setup is required for the Rx Virtqueue, such as knowing where to place the data. It's important to remember that, from the perspective of ToyVMM, each element of the Virtqueue consists only of guest memory addresses, and necessary operations are performed based on Virtqueue memory access.</p>
+<p>Returning to the guest, the following steps are expected:</p>
+<ol>
+<li>After initializing Descriptor chains and other settings, the guest assigns the index of the head of the free Descriptor chain to the empty entry pointed to by the <code>Available Ring</code> index.</li>
+<li>The guest increments the <code>Available Ring</code> index.</li>
+<li>To notify the host, the guest writes to MMIO <code>QueueNotify</code>.</li>
+</ol>
+<p>On the host side, when Rx Virtqueue notification is received from the guest, it interprets this as the <strong>Rx data space is ready for address access.</strong> </p>
+<div align="center">
+<img src="../03_figs/net-device_rx_1.svg", width="100%">
+</div>
+<p>Suppose the Tap device receives a packet at this point. By detecting the trigger of the Tap's file descriptor, the <code>NetEpollHandler</code> is dispatched, and it performs event processing for <code>RX_TAP_EVENT</code>. This processing mainly involves calling the <code>process_rx</code> function. However, there are certain conditions under which this may not happen, which we will discuss later.</p>
+<p><code>process_rx</code> proceeds as follows:</p>
+<ol>
+<li><code>process_rx</code> processes as many frames as possible received from the Tap by looping until no data can be read.</li>
+<li>If a successful read occurs from the Tap, the size of the read data is stored in <code>self.rx_count</code>, and the <code>rx_single_frame</code> function, which processes a single frame, is called.</li>
+<li>In <code>rx_single_frame</code>, the first entry from the Available Ring is retrieved, and the beginning of the free Descriptor chain that this entry points to is extracted.</li>
+<li>The received single frame's data is stored in the Descriptor, calculating the size along the way. If the received frame cannot fit into a single Descriptor, the <code>next</code> field of the Descriptor is followed to continue storing data.</li>
+<li>The <code>Used Ring</code> of the Rx Virtqueue is updated with information about the index of the Descriptor containing Rx data and the total amount of data stored.</li>
+<li>An interrupt is triggered by writing to the <code>eventfd</code> associated with the irq to delegate processing to the guest.</li>
+</ol>
+<p>The following diagram illustrates the process of writing the received data into the Descriptor chain using the Available Ring:</p>
+<div align="center">
+<img src="../03_figs/net-device_rx_2.svg", width="100%">
+</div>
+<p>Once the data from the Tap device has been written, the <code>Used Ring</code> is updated, and an interrupt is sent to the guest.</p>
+<div align="center">
+<img src="../03_figs/net-device_rx_3.svg", width="100%">
+</div>
+<p>On the guest side, the guest checks the <code>Used Ring</code> index, references the Descriptor pointed to by new entries, retrieves and processes Rx data, and performs any necessary operations. It then updates the Available Ring, signaling to the host that it is ready to accept new data.</p>
+<h5 id="when-tap-trigger-occurs-without-rx-virtqueue-preparation"><a class="header" href="#when-tap-trigger-occurs-without-rx-virtqueue-preparation">When Tap Trigger Occurs Without Rx Virtqueue Preparation</a></h5>
+<p>It is expected that there may be cases where Tap receives a packet when Rx Virtqueue is not ready. In such cases, even if data is extracted from Tap, it is impossible to obtain information about where to store it, preventing further processing.</p>
+<p>To address this, a mechanism to delay Tap device processing until Rx Virtqueue is prepared is required. In the ToyVMM code, this is controlled using a flag called <code>deferred_rx</code>.</p>
+<p>When this flag is set, ToyVMM's Rx-related processing follows the following strategy:</p>
+<ul>
+<li>When <code>RX_QUEUE_EVENT</code> is triggered, indicating that the Rx Virtqueue is ready to receive data from the guest, data is immediately retrieved from the Tap device, and processing continues. If processing is completed at this point, the flag is cleared.</li>
+<li>When <code>TAP_RX_EVENT</code> is triggered, processing is temporarily paused to check the status of the Rx Virtqueue. If processing can proceed, it continues, and if processing is completed, the flag is cleared. If processing cannot proceed or the amount of data in the Virtqueue is smaller than the received data, the flag is not cleared, and it waits for the Rx Virtqueue to be ready again.</li>
+</ul>
+<h5 id="when-tap-reception-exceeds-the-prepared-rx-virtqueue"><a class="header" href="#when-tap-reception-exceeds-the-prepared-rx-virtqueue">When Tap Reception Exceeds the Prepared Rx Virtqueue</a></h5>
+<p>Another case to consider is when the data received by Tap exceeds the capacity of the prepared Virtqueue, as briefly mentioned above. In this case, the strategy is essentially the same, and the processing is temporarily interrupted until the next Virtqueue is prepared, controlled by the <code>deferred_rx</code> flag. When the Virtqueue is ready, processing resumes.</p>
+<h3 id="verification-of-virtio-net-operation"><a class="header" href="#verification-of-virtio-net-operation">Verification of virtio-net Operation</a></h3>
+<p>Let's test whether communication between the host and guest is possible using the implemented <code>Virtio</code> mechanism and the Network Device. Below is the result of executing the <code>ip addr</code> command inside the guest. <code>eth0</code> is recognized as a virtual NIC.</p>
+<pre><code>localhost:~# ip addr
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 02:32:22:01:57:33 brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::32:22ff:fe01:5733/64 scope link
+       valid_lft forever preferred_lft forever
+</code></pre>
+<p>Let's also check on the host side. In ToyVMM, a Tap device is created on the host side. So assign an IP address (<code>192.168.0.10/24</code>).</p>
+<pre><code class="language-bash">140: vmtap0: &lt;BROADCAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UNKNOWN group default qlen 1000
+    link/ether c6:69:6d:65:05:cf brd ff:ff:ff:ff:ff:ff
+    inet 192.168.0.10/24 brd 192.168.0.255 scope global vmtap0
+       valid_lft forever preferred_lft forever
+</code></pre>
+<p>Additionally, assign an IP address to the guest side. Here, an address within the same subnet range as the host is assigned.</p>
+<pre><code>localhost:~# ip addr add 192.168.0.11/24 dev eth0
+</code></pre>
+<p>Now that everything is set up, let's ping the IP address of the host's Tap interface from within the guest. You should receive responses as follows:</p>
+<pre><code>localhost:~# ping -c 5 192.168.0.10
+PING 192.168.0.10 (192.168.0.10): 56 data bytes
+64 bytes from 192.168.0.10: seq=0 ttl=64 time=0.394 ms
+64 bytes from 192.168.0.10: seq=1 ttl=64 time=0.335 ms
+64 bytes from 192.168.0.10: seq=2 ttl=64 time=0.334 ms
+64 bytes from 192.168.0.10: seq=3 ttl=64 time=0.321 ms
+64 bytes from 192.168.0.10: seq=4 ttl=64 time=0.330 ms
+
+--- 192.168.0.10 ping statistics ---
+5 packets transmitted, 5 packets received, 0% packet loss
+round-trip min/avg/max = 0.321/0.342/0.394 ms
+</code></pre>
+<p>Conversely, if you ping the IP address of the <code>virtio-net</code> interface in the guest from the host, you should also receive responses:</p>
+<pre><code class="language-bash">[mmichish@mmichish ~]$ ping -c 5 192.168.0.11
+PING 192.168.0.11 (192.168.0.11) 56(84) bytes of data.
+64 bytes from 192.168.0.11: icmp_seq=1 ttl=64 time=0.410 ms
+64 bytes from 192.168.0.11: icmp_seq=2 ttl=64 time=0.366 ms
+64 bytes from 192.168.0.11: icmp_seq=3 ttl=64 time=0.385 ms
+64 bytes from 192.168.0.11: icmp_seq=4 ttl=64 time=0.356 ms
+64 bytes from 192.168.0.11: icmp_seq=5 ttl=64 time=0.376 ms
+
+--- 192.168.0.11 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4114ms
+rtt min/avg/max/mdev = 0.356/0.378/0.410/0.028 ms
+</code></pre>
+<p>Although this is a simple confirmation using ICMP, it confirms that communication is functioning properly!</p>
+<h3 id="reference"><a class="header" href="#reference">Reference</a></h3>
+<ul>
+<li><a href="https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=virtio">OASIS</a></li>
+<li><a href="https://syuu1228.github.io/howto_implement_hypervisor/">Creating a Hypervisor</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="03-2_implement_virtio_in_toyvmm.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="03-4_virtio-blk.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="03-2_implement_virtio_in_toyvmm.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="03-4_virtio-blk.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>

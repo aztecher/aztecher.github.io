@@ -1,0 +1,351 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>02-2. ELF binary format and vmlinux structure - toyvmm book (en)</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html" class="active">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">toyvmm book (en)</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/aztecher/toyvmm" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="elf-binary-format-and-vmlinux-structure"><a class="header" href="#elf-binary-format-and-vmlinux-structure">ELF binary format and vmlinux structure</a></h1>
+<p>At the time of writing this document, the kernel used to boot a VM in ToyVMM assumes an ELF-formatted <code>vmlinux.bin</code>. Therefore, within the VMM, it's necessary to interpret the ELF format and load the kernel into the memory area prepared for the VM appropriately. This process is implemented in the <a href="https://github.com/rust-vmm/linux-loader">rust-vmm/linux-loader</a> crate. While ToyVMM abstracts this implementation by using the crate, it is essential to understand how it works. Hence, this section provides an explanation of loading ELF binaries.</p>
+<h2 id="elf-binary-format"><a class="header" href="#elf-binary-format">ELF Binary Format</a></h2>
+<p>The ELF file format consists of the following components:</p>
+<img src="../02_figs/elf_format.svg" width="100%">
+<p>As shown above, the ELF file format primarily consists of an <code>ELF Header</code>, <code>Program Header Table</code>, <code>Segments (Sections)</code>, and <code>Section Header Table</code>. When used by a system loader, ELF files treat the entries in the <code>Program Header Table</code> as a collection of <code>Segments</code>, while compilers, assemblers, and linkers treat entries in the <code>Section Header Table</code> as a collection of <code>Sections</code>.</p>
+<p>The <code>ELF Header</code> contains overall information about the ELF file. Each entry in the <code>Program Header Table</code>, known as a <code>Program Header</code>, holds header information about the corresponding <code>Segment</code>. Therefore, the number of <code>Program Headers</code> corresponds to the number of <code>Segments</code>. Furthermore, each <code>Segment</code> can be divided into multiple <code>Sections</code>, and the <code>Section Header Table</code> contains header information for these <code>Sections</code>.</p>
+<p>The <code>ELF Header</code> always starts at the beginning of the file offset and holds information necessary for reading ELF data. Here are some excerpts from the <code>ELF Header</code>. For a comprehensive overview, please refer to the <a href="https://linuxjm.osdn.jp/html/LDP_man-pages/man5/elf.5.html">Man page of ELF</a>.</p>
+<table><thead><tr><th>Attribute</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>e_entry</code></td><td>Virtual address representing the entry point to start this ELF process</td></tr>
+<tr><td><code>e_phoff</code></td><td>File offset value to the location of the <code>Program Header Table</code></td></tr>
+<tr><td><code>e_shoff</code></td><td>File offset value to the location of the <code>Section Header Table</code></td></tr>
+<tr><td><code>e_phentsize</code></td><td>Size of one entry in the <code>Program Header Table</code></td></tr>
+<tr><td><code>e_phnum</code></td><td>Number of entries in the <code>Program Header Table</code></td></tr>
+<tr><td><code>e_shentsize</code></td><td>Size of one entry in the <code>Section Header Table</code></td></tr>
+<tr><td><code>e_shnum</code></td><td>Number of entries in the <code>Section Header Table</code></td></tr>
+</tbody></table>
+<p>From the above excerpts, you can see that it's possible to extract information about each entry in the <code>Program Header</code> and <code>Section Header</code>.</p>
+<p>Now, let's focus on the contents of the <code>Program Header</code>.</p>
+<table><thead><tr><th>Attribute</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>p_type</code></td><td>Represents the type of the <code>Segment</code> pointed to by this <code>Program Header</code>, providing hints on how to interpret it</td></tr>
+<tr><td><code>p_offset</code></td><td>File offset value to the <code>Segment</code> pointed to by this <code>Program Header</code></td></tr>
+<tr><td><code>p_paddr</code></td><td>In systems where physical addresses are meaningful, this value points to the physical address of the <code>Segment</code> pointed to by this <code>Program Header</code></td></tr>
+<tr><td><code>p_filesz</code></td><td>Byte size of the file image of the <code>Segment</code> pointed to by this <code>Program Header</code></td></tr>
+<tr><td><code>p_memsz</code></td><td>Byte size of the memory image of the <code>Segment</code> pointed to by this <code>Program Header</code></td></tr>
+<tr><td><code>p_flags</code></td><td>Flags that indicate information about the <code>Segment</code> pointed to by this <code>Program Header</code>, such as executable, writable, and readable</td></tr>
+</tbody></table>
+<p>As mentioned earlier, by interpreting the contents of the <code>Program Header</code>, you can obtain information about the position, size, and how to interpret the respective segment. For our purposes, understanding the structure of the <code>Program Header</code> is sufficient, so we will omit details about the <code>Section Header</code> and other components.</p>
+<p>Now, the <code>vmlinux.bin</code> we will be working with has five <code>Program Header</code> entries, with the first four having a <code>p_type</code> value of <code>PT_LOAD</code>, and the last one having <code>PT_NOTE</code>. Let's extract some details about <code>PT_LOAD</code> and <code>PT_NOTE</code> from the <a href="https://linuxjm.osdn.jp/html/LDP_man-pages/man5/elf.5.html">Man page of ELF</a>:</p>
+<table><thead><tr><th><code>p_type</code></th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>PT_LOAD</code></td><td>Represents a loadable <code>Segment</code> described by <code>p_filesz</code> and <code>p_memsz</code>.</td></tr>
+<tr><td><code>PT_NOTE</code></td><td>Contains auxiliary information for location and size.</td></tr>
+</tbody></table>
+<p>In the case of <code>PT_LOAD</code>, the byte sequence of the file is associated with the beginning of the memory segment. You can load the segment's contents into memory by copying the data from the address corresponding to the segment's memory address, calculated using <code>p_offset</code>, for the size specified by <code>p_memsz</code>.</p>
+<p>With this minimal knowledge of ELF, let's proceed to analyze the content of <code>vmlinux.bin</code>.</p>
+<h2 id="analyzing-vmlinux"><a class="header" href="#analyzing-vmlinux">Analyzing vmlinux</a></h2>
+<p>Let's analyze the content of <code>vmlinux</code> now. Some of the information we'll extract will be crucial for future tasks. The <code>readelf</code> command is a powerful tool for dumping ELF-formatted files in a human-readable format. In this section, we will display the ELF Header (<code>-h</code>) and Program Header (<code>-l</code>) of <code>vmlinux.bin</code>.</p>
+<pre><code class="language-bash">$ readelf -h -l vmlinux.bin
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x1000000
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          21439000 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         5
+  Size of section headers:           64 (bytes)
+  Number of section headers:         36
+  Section header string table index: 35
+
+Program Headers:
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  LOAD           0x0000000000200000 0xffffffff81000000 0x0000000001000000
+                 
+
+ 0x0000000000b72000 0x0000000000b72000  R E    0x200000
+  LOAD           0x0000000000e00000 0xffffffff81c00000 0x0000000001c00000
+                  0x00000000000b0000 0x00000000000b0000  RW     0x200000
+  LOAD           0x0000000001000000 0x0000000000000000 0x0000000001cb0000
+                  0x000000000001f658 0x000000000001f658  RW     0x200000
+  LOAD           0x00000000010d0000 0xffffffff81cd0000 0x0000000001cd0000
+                  0x0000000000133000 0x0000000000413000  RWE    0x200000
+  NOTE           0x0000000000a031d4 0xffffffff818031d4 0x00000000018031d4
+                  0x0000000000000024 0x0000000000000024         0x4
+
+Section to Segment mapping:
+  Segment Sections...
+   00     .text .notes __ex_table .rodata .pci_fixup __ksymtab __ksymtab_gpl __kcrctab __kcrctab_gpl __ksymtab_strings __param __modver
+   01     .data __bug_table .vvar
+   02     .data..percpu
+   03     .init.text .altinstr_aux .init.data .x86_cpu_dev.init .parainstructions .altinstructions .altinstr_replacement .iommu_table .apicdrivers .exit.text .smp_locks .data_nosave .bss .brk
+   04     .notes
+</code></pre>
+<p>From the ELF Header, we can see that the &quot;Entry point address&quot; (<code>e_entry</code> value) represents the address (<code>0x0100_0000</code>) where the ELF process starts, which is essential. This value is returned as the result of loading the kernel using <code>rust-vmm/linux-loader</code>, and it's also the value to set in the vCPU's <code>eip</code> (instruction pointer) to start the process.</p>
+<p>The <code>e_phnum</code> value in the ELF Header (<code>Number of program headers</code>) is <code>5</code>, which matches the number of Program Headers (<code>Program Header Table</code> entries). The Program Headers are displayed next, with the first four having a <code>Type</code> of <code>LOAD</code>, and the last one being <code>NOTE</code>. Additionally, the first and fourth <code>LOAD</code> entries are marked as executable, indicating that executable code is present around these segments. The first entry is especially important as it likely corresponds to the entry point of the kernel's executable code.</p>
+<h2 id="implementation-in-toyvmm"><a class="header" href="#implementation-in-toyvmm">Implementation in ToyVMM.</a></h2>
+<p>In ToyVMM, the loading of <code>vmlinux</code> is done within the <code>load_kernel</code> function in <code>src/builder.rs</code>. This function takes <code>boot_config</code> information, which includes the path to the kernel file, and the memory (<code>guest_memory</code>) allocated for the VM.</p>
+<p>Within <code>load_kernel</code>, <code>rust-vmm/linux-loader</code>'s <code>Elf</code> structure (imported as <code>Loader</code>) is used. This structure implements the <code>KernelLoader</code> trait, and its <code>load</code> function is responsible for loading ELF-formatted kernels into <code>guest_memory</code>. Here's an excerpt from the code:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use linux_loader::elf::Elf as Loader;
+
+let entry_addr = Loader::load::&lt;File, memory::GuestMemoryMmap&gt;(
+    guest_memory,
+    None,
+    &amp;mut kernel_file,
+    Some(GuestAddress(arch::x86_64::get_kernel_start())),
+).map_err(StartVmError::KernelLoader)?;
+<span class="boring">}
+</span></code></pre></pre>
+<p>Now, let's delve deeper into the implementation of <code>linux-loader</code>. In <code>linux-loader</code>, the <code>KernelLoader</code> trait is defined, and its definition looks like this:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>/// Trait that specifies kernel image loading support.
+pub trait KernelLoader {
+    /// How to load a specific kernel image format into the guest memory.
+    ///
+    /// # Arguments
+    ///
+    /// * `guest_mem`: [`GuestMemory`] to load the kernel in.
+    /// * `kernel_offset`: Usage varies between implementations.
+    /// * `kernel_image`: Kernel image to be loaded.
+    /// * `highmem_start_address`: Address where high memory starts.
+    ///
+    /// [`GuestMemory`]: https://docs.rs/vm-memory/latest/vm_memory/guest_memory/trait.GuestMemory.html
+    fn load&lt;F, M: GuestMemory&gt;(
+        guest_mem: &amp;M,
+        kernel_offset: Option&lt;GuestAddress&gt;,
+        kernel_image: &amp;mut F,
+        highmem_start_address: Option&lt;GuestAddress&gt;,
+    ) -&gt; Result&lt;KernelLoaderResult&gt;
+    where
+        F: Read + Seek;
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>As inferred from the comments, this trait requires the <code>load</code> function to be implemented, which should load a specific kernel image format into the guest memory.
+In the case of <code>linux-loader</code>, there are implementations for x86_64 that support loading ELF format kernels, and it also appears to have implementations for bzImage format kernels. However, for this discussion, let's focus on the ELF implementation.</p>
+<p>The <code>load</code> function, which is expected to be implemented for ELF, performs the following steps:</p>
+<ol>
+<li>Extract the data from the beginning of the ELF file up to the size of the ELF header.</li>
+<li>Create an instance of the <code>KernelLoaderResult</code> struct named <code>loader_result</code> and store the value of the ELF header's <code>e_entry</code> field in its <code>kernel_load</code> member. This value represents the address where the system will initially transfer control, which is essentially the starting point of the process.</li>
+<li>Seek within the ELF file to the address where the program header table is located (determined by <code>e_phoff</code>), and then loop over all program headers (up to <code>e_phnum</code>) in the ELF file.</li>
+<li>While looping over the program headers, perform the following actions:
+<ul>
+<li>Seek within the ELF file to the location of the segment corresponding to the currently inspected program header (determined by <code>p_offset</code>).</li>
+<li>Write the data from <code>kernel_image</code> (which has already been seeked to the beginning of the segment's data) into the guest memory, starting from the address calculated from <code>mem_offset</code> to the size of the segment (<code>p_filesz</code>).</li>
+<li>Update the value of <code>kernel_end</code> (the address of the end of the loaded segment in GuestMemory) and store the larger value between <code>loader_result.kernel_end</code> and the newly calculated value in <code>loader_result.kernel_end</code>.</li>
+</ul>
+</li>
+<li>After looping through all program headers, return <code>loader_result</code> as the final result.</li>
+</ol>
+<p>This code essentially interprets and loads ELF files according to the ELF format. The returned <code>KernelLoaderResult</code> struct contains important information about the starting and ending positions of the kernel in GuestMemory, with the starting position being particularly crucial for use in <a href="./02-4_setup_registers_of_vcpu.html">Setup registers of vCPU</a>.</p>
+<h2 id="references"><a class="header" href="#references">References</a></h2>
+<ul>
+<li><a href="https://valinux.hatenablog.com/entry/20200910">vmlinux</a></li>
+<li><a href="https://www.hazymoon.jp/OpenBSD/annex/elf.html">ELF Formatについて</a></li>
+<li><a href="https://linuxhint.com/understanding_elf_file_format/">Understanding the ELF File Format</a></li>
+<li><a href="https://qiita.com/niwaka_dev/items/b915d1ffc7a677c74959">ELF形式のヘッダ部分を解析する単純なプログラムを作ってみた</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="02-1_overview_of_booting_linux.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="02-3_load_initrd.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="02-1_overview_of_booting_linux.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="02-3_load_initrd.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>

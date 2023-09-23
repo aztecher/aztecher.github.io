@@ -1,0 +1,409 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>02-4. Setup registers of vcpu - toyvmm book (en)</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html" class="active">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">toyvmm book (en)</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/aztecher/toyvmm" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="setup-registers-of-vcpu"><a class="header" href="#setup-registers-of-vcpu">Setup registers of vCPU</a></h1>
+<p>In this document, we will describe the configuration of vCPU registers. While registers are commonly discussed collectively, there are various types of registers, making it complex to determine how to set each of them. The content related to registers explained in this document focuses solely on the aspect of starting a virtual machine (VM). Additionally, as we want to boot the Guest OS in 64-bit mode, we will briefly explain some settings required for transitioning to 64-bit mode and the associated paging.</p>
+<h2 id="setup-vcpu-general-purpose-registers"><a class="header" href="#setup-vcpu-general-purpose-registers">Setup vCPU general-purpose registers</a></h2>
+<p>Configuration of the vCPU's general-purpose registers can be done through the KVM <code>set_regs</code> API. For this example, we will set the values of the registers as follows (detailed explanations of each register are omitted):</p>
+<table><thead><tr><th>Register</th><th>Value</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>RFLAGS</td><td>2</td><td>The bit at 0x02 must be set as a reserved bit</td></tr>
+<tr><td>RIP</td><td>KERNEL START ADDRESS (<code>0x0100_0000</code>)</td><td>Address of the entry point obtained from the ELF</td></tr>
+<tr><td>RSP</td><td>BOOT STACK POINTER (<code>0x8ff0</code>)</td><td>Address of the Stack Pointer used during boot</td></tr>
+<tr><td>RBP</td><td>BOOT STACK POINTER (<code>0x8ff0</code>)</td><td>Set to match RSP before boot processing</td></tr>
+<tr><td>RSI</td><td><code>boot_params</code> ADDRESS (<code>0x7000</code>)</td><td>Address where <code>boot_params</code> information is stored</td></tr>
+</tbody></table>
+<p>The RIP should store the instruction start address when the vCPU is launched. In this case, we specify the address of the kernel's entry point. Since we plan to execute in 64-bit Long Mode, RIP's address will be treated as a virtual memory address. However, to implement Paging with Identity Mapping, the virtual memory address will be equal to the physical memory address. For RSP and RBP, we put the addresses necessary for the boot stack. These values can be obtained from available memory. RSI should contain the address where the <code>boot_params</code> structure is stored. ToyVMM is created by mimicking Firecracker's values, so the address values stored in RSP, RBP, and RSI are mimicked from Firecracker.</p>
+<h2 id="setup-vcpu-special-registers"><a class="header" href="#setup-vcpu-special-registers">Setup vCPU special registers</a></h2>
+<p>Configuration of vCPU special registers can be done through the KVM <code>set_sregs</code> API. In this section, we will focus on the registers that are actually configured while briefly mentioning the background. The following explanations may introduce some unfamiliar terms. If you encounter such terms, please take the time to look them up.</p>
+<h4 id="idt-interrupt-descriptor-table"><a class="header" href="#idt-interrupt-descriptor-table">IDT (Interrupt Descriptor Table)</a></h4>
+<p>The <a href="https://wiki.osdev.org/Interrupt_Descriptor_Table">IDT (Interrupt Descriptor Table)</a> is a data structure that holds information about interrupts and exceptions in Protected Mode and Long Mode. Originally, in Real Mode, there was the Interrupt Vector Table (IVT), which served the purpose of informing the CPU where the Interrupt Service Routines (ISRs) were located. In other words, it held handlers for each interrupt or exception, allowing the system to determine which handler to invoke when they occurred.</p>
+<p>In Protected Mode and Long Mode, the address representation is different from Real Mode, so IDT is a mechanism that provides similar capabilities but adapted to these modes. The IDT is a table with a maximum of 255 entries, and the IDT's address needs to be set in the IDTR register. When an interrupt occurs, the CPU references the IDT from the IDTR value and executes the specified interrupt handler.</p>
+<p>According to the <a href="https://docs.kernel.org/x86/boot.html#id1">64-bit Boot Protocol</a>, interrupts should be set to &quot;Disabled.&quot; Therefore, the IDT-related configuration is omitted in the ToyVMM (Firecracker) implementation, and we won't delve into the details of the IDT here.</p>
+<h4 id="segmentation-gdt-global-descriptor-table-ldt-local-descriptor-table"><a class="header" href="#segmentation-gdt-global-descriptor-table-ldt-local-descriptor-table">Segmentation, GDT (Global Descriptor Table), LDT (Local Descriptor Table)</a></h4>
+<p>Before discussing GDT, let's briefly introduce segmentation. Memory segmentation is a memory management method where programs and data are managed in variable-sized blocks called segments. Segments are groups of information categorized by attributes in memory, and they are one of the memory management methods used to implement virtual memory and memory protection. In Linux, segmentation is used in conjunction with paging, assuming a flat memory model. For the rest of this discussion, we will proceed with this assumption.</p>
+<p>The <a href="https://wiki.osdev.org/Interrupt_Descriptor_Table">GDT (Global Descriptor Table)</a> is a data structure used to manage memory segments. This structure closely resembles the IDT. The GDT is a table with multiple entries called Segment Descriptors, and the GDT's address needs to be set in the GDTR register. The entries in this table are accessed by the Segment Selector, and they provide information about which address range is covered, what operations are allowed in that region, and other details. The Segment Selector appears in Segmentation Registers and the format of each Entry in the IDT, such as the Gate Descriptor and Task State Segment. We will omit detailed explanations here, so please research further if needed.</p>
+<p>The <a href="https://wiki.osdev.org/Local_Descriptor_Table">LDT (Local Descriptor Table)</a> is a data structure used to manage segments, similar to GDT. However, LDT can be held separately for each task or thread, distinguishing it from GDT. Having a separate GDT descriptor for each task allows segments to be shared among a task's own programs while keeping them separate from segments used by different tasks, enhancing security between tasks. Since LDT is not relevant to this implementation, we will also skip detailed explanations about it.</p>
+<h3 id="gdt-setup-for-64-bit-mode"><a class="header" href="#gdt-setup-for-64-bit-mode">GDT setup for 64-bit mode</a></h3>
+<p>As specified in the <a href="https://docs.kernel.org/x86/boot.html#id1">64-bit Boot Protocol</a>, in 64-bit mode, each Segment Descriptor must be set up as a 4G flat segment. Code and Data Segments should be assigned the appropriate permissions. The <a href="https://wiki.osdev.org/Global_Descriptor_Table">Global Descriptor Table</a> indicates that in 64-bit mode, base and limit are essentially ignored, and each Descriptor covers the entire linear address space, except for the flags. Therefore, it seems that the values for flags other than the flags are not critical. Nonetheless, in this example, explicit setup is done to ensure a flat segment. Additionally, it is mentioned that the values for <code>DS</code>, <code>ES</code>, and <code>SS</code> should be the same as <code>DS</code>, so this is implemented accordingly.</p>
+<p>Subsequently, we will examine how these settings are configured in ToyVMM (you can read it as Firecracker). These settings are done in the <code>configure_seguments_and_sregs</code> function. To make it easier to understand, some comments have been added:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn configure_segments_and_sregs(sregs: &amp;mut kvm_sregs, mem: &amp;GuestMemoryMmap) -&gt; Result&lt;(), RegError&gt; {
+    let gdt_table: [u64; BOOT_GDT_MAX as usize] = [
+        gdt::gdt_entry(0, 0, 0),            // NULL
+        gdt::gdt_entry(0xa09b, 0, 0xfffff), // CODE
+        gdt::gdt_entry(0xc093, 0, 0xfffff), // DATA
+        gdt::gdt_entry(0x808b, 0, 0xfffff), // TSS
+    ];
+    // &gt; https://wiki.osdev.org/Global_Descriptor_Table
+    //
+    //              55 52     47     40 39        31               16 15                0
+    // CODE: 0b0..._1010_1111_1001_1011_0000_0000_0000_0000_0000_0000_1111_1111_1111_1111
+    //              &lt;-f-&gt;     &lt;-Access-&gt;&lt;---------------------------&gt; &lt;----- limit -----&gt;
+    // - Flags  : 1010      =&gt; G(limit is in 4KiB), L(Long mode)
+    // - Access : 1001_1011 =&gt; P(must 1), S(code/data type), E(executable), RW(readable/writable), A(CPU access allowed)
+    //   - 0xa09b of A,9,B represents above values
+    //
+    // DATA: 0b0..._1100_1111_1001_0011_0000_0000_0000_0000_0000_0000_1111_1111_1111_1111
+    // - Flags  : 1100      =&gt; G(limit is in 4KiB), DB(32-bit protected mode)
+    // - Access : 1001_0011 =&gt; P(must 1), S(code/data type), RW(readable/writable), A(CPU access allowed)
+    //
+    // TSS
+    // - Flags  : 1000      =&gt; G(limit is in 4KiB)
+    // - Access : 1000_1011 =&gt; P(must 1), E(executable), RW(readable/writable), A(CPU access allowed)
+    //    - TSS requires to support Intel VT
+    let code_seg = gdt::kvm_segment_from_gdt(gdt_table[1], 1);
+    let data_seg = gdt::kvm_segment_from_gdt(gdt_table[2], 2);
+    let tss_seg = gdt::kvm_segment_from_gdt(gdt_table[3], 3);
+
+    // Write segments
+    write_gdt_table(&amp;gdt_table[..], mem)?;
+    sregs.gdt.base = BOOT_GDT_OFFSET as u64;
+    sregs.gdt.limit = mem::size_of_val(&amp;gdt_table) as u16 - 1;
+
+    write_idt_value(0, mem)?;
+    sregs.idt.base = BOOT_IDT_OFFSET as u64;
+    sregs.idt.limit = mem::size_of::&lt;u64&gt;() as u16 - 1;
+
+    sregs.cs = code_seg;
+    sregs.ds = data_seg;
+    sregs.es = data_seg;
+    sregs.fs = data_seg;
+    sregs.gs = data_seg;
+    sregs.ss = data_seg;
+    sregs.tr = tss_seg;
+
+    // 64-bit protected mode
+    sregs.cr0 |= X86_CR0_PE;
+    sregs.efer |= EFER_LME | EFER_LMA;
+    Ok(())
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>In the above code, a table with 4 entries is created as the GDT to set up. The first entry must be Null as required by the GDT. For the rest, it can be seen that settings for the CODE Segment, DATA Segment, and TSS Segment are made for the entire memory region.
+The TSS setting is done to meet the requirements of Intel VT, and it's not substantially used within the scope of this document.</p>
+<p>Now, when creating this GDT, a function called <code>gdt_entry</code> is called to create each entry. Here's the code for this function:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn gdt_entry(flags: u16, base: u32, limit: u32) -&gt; u64 {
+    ((u64::from(base) &amp; 0xff00_0000u64) &lt;&lt; (56 - 24))
+        | ((u64::from(flags) &amp; 0x0000_f0ffu64) &lt;&lt; 40)
+        | ((u64::from(limit) &amp; 0x000f_0000u64) &lt;&lt; (48 - 16))
+        | ((u64::from(base) &amp; 0x00ff_ffffu64) &lt;&lt; 16)
+        | (u64::from(limit) &amp; 0x0000_ffffu64)
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>For this function, all entries have <code>0x0</code> as the base and <code>0xFFFFF</code> (<code>2^5 = 32-bit = 4GB</code>) as the limit, which makes it a flat segmentation. The <code>flags</code> argument for each entry is configured individually, which in turn corresponds to the values in GDT's <code>Flags</code> and <code>AccessByte</code>. If you look at the comments in the code, you can see the values returned by <code>gdt_entry</code> for each entry and what those values represent when parsed. According to the comments, as required by the <a href="https://docs.kernel.org/x86/boot.html#id1">64-bit Boot Protocol</a>, the CODE Segment has Execute/Read permission and the &quot;long mode (64-bit code segment)&quot; flag, while the DATA Segment has Read/Write permission.</p>
+<p>The GDT created as mentioned above is written to GuestMemory using the <code>write_gdt_table</code> function, and the starting address of that is stored in <code>sregs.gdt.base</code>.</p>
+<p>Regarding the subsequent IDT settings, as mentioned earlier, it appears to be disabled. Therefore, nothing is written to memory. However, the code decides on which address in GuestMemory to use and stores that address in <code>sregs.idt.base</code>.</p>
+<p>Continuing, other register values are set. As mentioned earlier, <code>CS</code> is set with information about the CODE Segment, and <code>DS</code>, <code>ES</code>, <code>SS</code> are set with information about the DATA Segment, while <code>TR</code> is set with information about the TSS Segment. In the code above, <code>FS</code> and <code>GS</code> are also set with information about the DATA Segment, but these segment values may not need to be configured.</p>
+<p>Finally, settings are made for CR0 and EFER registers, which will be explained later.</p>
+<h3 id="64-bit-protected-mode"><a class="header" href="#64-bit-protected-mode">64-bit protected mode</a></h3>
+<p>The <code>Long mode</code> is the native mode for x86_64 processors, offering several additional features compared to the legacy x86 mode. However, we won't go into the details of these additional features here. <code>Long mode</code> consists of two submodes: <code>64-bit mode</code> and <code>compatibility mode</code>.</p>
+<p>To switch to 64-bit mode, you need to perform the following steps:</p>
+<ol>
+<li>Set <code>CR4.PAE</code> to enable Physical Address Extension (PAE).</li>
+<li>Create the Page Table and load the address of the top-level page table into <code>CR3</code> register.</li>
+<li>Set <code>CR0.PG</code> to enable Paging.</li>
+<li>Set <code>EFER.LME</code> to enable Long Mode.</li>
+</ol>
+<p>Setting the values in the registers involves updating the corresponding fields in the <code>kvm_sregs</code> structure and then configuring them using <code>set_sregs</code>. The key part is creating the Page Table.</p>
+<h4 id="4-level-page-table-for-entering-64-bit-mode"><a class="header" href="#4-level-page-table-for-entering-64-bit-mode">4-Level Page Table for entering 64-bit mode</a></h4>
+<p>The processes related to booting the Linux Kernel are categorized into several stages based on the available memory address space. Immediately after booting, the process of setting up and interacting with physical memory addresses is known as <code>x16 Real-Mode</code>, which operates in a 16-bit memory alignment.</p>
+<p>On the other hand, as many readers are aware, familiar operating systems like ours can be either 32-bit or 64-bit. These distinctions are made possible through a feature known as CPU mode switching, which transitions the CPU into modes called <code>x32 Protected Mode</code> and <code>x64 Long Mode</code>. Once switched to these modes, the CPU can only utilize virtual memory addresses.</p>
+<p>Especially in the x64 CPU architecture, a 4-level page table is typically used to translate 64-bit virtual addresses into physical addresses. This means that before switching to <code>x64 Long Mode</code>, a 4-level page table must be constructed and conveyed to the CPU. This process is implemented as part of the BootLoader's functionality.</p>
+<p>Now, another crucial point to consider is that while the RIP value currently contains the <strong>physical address</strong> value indicating the kernel's entry point, when handling it in <code>x64 Long Mode</code>, this address is used as a <strong>virtual address</strong>. Therefore, if this address were to be mapped to a different physical address, the OS would fail to boot.</p>
+<p>Hence, at this stage, a simple page table is created where virtual memory addresses map to the same physical memory addresses. This is often referred to as Identity Mapping and addresses the issue mentioned above.</p>
+<p>Note: It's important to note that the page table created by the BootLoader for x64 is a temporary requirement for executing the kernel. When we typically think of virtual memory addresses and page tables, we often associate them with user-space processes. However, the paging mechanism for user processes is implemented within the kernel and is configured when the kernel boots. Therefore, the mechanism for translating BootLoader's page table, whether it's Identity Mapping or not, has no impact on the paging mechanism for individual processes after the OS boots.</p>
+<h4 id="page-table-implementation-in-toyvmm"><a class="header" href="#page-table-implementation-in-toyvmm">Page Table implementation in ToyVMM</a></h4>
+<p>Let's dive into the specific implementation of ToyVMM to understand the Page Table configuration better. This implementation closely follows that of Firecracker.</p>
+<p>Let's briefly discuss the structure of the 4-Level Page Table. Essentially, at each level, there exists a table with its own designation:</p>
+<p>Level 4: Page Map Level 4 (PML4)
+Level 3: Page Directory Pointer Table (PDPT)
+Level 2: Page Directory Table (PDT)
+Level 1: Page Tables (PT)</p>
+<p>Each table can hold 512 entities, and one entity consists of 8 bytes (64 bits).
+Therefore, the entire table size is 512 (entities) * 8 (bytes per entity) = 4096 bytes.
+This size conveniently fits into a single page (4KB).</p>
+<p>The structure of each level's entity is as follows:</p>
+<img src="../02_figs/cr3_and_paging.svg" width="100%">
+<blockquote>
+<p>Source: <a href="https://alessandropellegrini.it/didattica/2017/aosv/1.Initial-Boot-Sequence.pdf">x86 Initial Boot Sequence</a> and <a href="https://wiki.osdev.org/Paging">OSdev/Paging</a></p>
+</blockquote>
+<p>From the above, it seems that the setup should satisfy the following conditions:</p>
+<ol>
+<li>Consider the data within CR3, which serves as the address of PML4, as ranging from bits 12 to 32+ in order to design the PML4 address.</li>
+<li>To enable the PML4, set the 0th bit, and design the address of PDPT within the range of bits 12 to 32+.</li>
+<li>To utilize the layout of PDPTE page directory, do not set the 7th bit of PDPTE, and design the address of PD within the range of bits 12 to 32+.</li>
+<li>To allow 2MB pages in PDE, set the 7th bit and design the Physical Address within the range of bits 21 to 32+.</li>
+<li>In Firecracker, it appears that 2MiB paging is implemented without using Level 1 Page Tables (i.e., without using 4KiB pages). ToyVMM's implementation follows suit.</li>
+</ol>
+<p>Now, let's extract the actual code from the implementation based on the above.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn setup_page_tables(sregs: &amp;mut kvm_sregs, mem: &amp;GuestMemoryMmap) -&gt; Result&lt;(), RegError&gt; {
+    let boot_pml4_addr = GuestAddress(PML4_START);
+    let boot_pdpte_addr = GuestAddress(PDPTE_START);
+    let boot_pde_addr = GuestAddress(PDE_START);
+
+    // Entry converting VA [0..512GB)
+    mem.write_obj(boot_pdpte_addr.raw_value() as u64 | 0x03, boot_pml4_addr)
+        .map_err(|_| RegError::WritePdpteAddress)?;
+    // Entry covering VA [0..1GB)
+    mem.write_obj(boot_pde_addr.raw_value() as u64 | 0x03, boot_pdpte_addr)
+        .map_err(|_| RegError::WritePdpteAddress)?;
+    // 512 MB entries together covering VA [0..1GB).
+    // Note we are assuming CPU support 2MB pages (/proc/cpuinfo has 'pse').
+    for i in 0..512 {
+        mem.write_obj((i &lt;&lt; 21) + 0x83u64, boot_pde_addr.unchecked_add(i * 8))
+            .map_err(|_| RegError::WritePdeAddress)?;
+    }
+    sregs.cr3 = boot_pml4_addr.raw_value() as u64;
+    sregs.cr4 |= X86_CR4_PAE;
+    sregs.cr0 |= X86_CR0_PG;
+    Ok(())
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>As seen, the implementation is quite simple.</p>
+<p><code>PML4_START</code>, <code>PDPTE_START</code>, and <code>PDE_START</code> have hardcoded address values, which are <code>PML4_START=0x9000</code>, <code>PDPTE_START=0xa000</code>, and <code>PDE_START=0xb000</code>, respectively, meeting the requirements of the address designs mentioned above.</p>
+<p>From the code, it's clear that there is only one <code>PML4</code> and one <code>PDPT</code> Table, and only the initial entry is set up. This is sufficient in this implementation because the kernel's address being translated by these page tables is <code>0x0100_0000</code>. These tables, specifically <code>PML4</code> and <code>PDPT</code>, will always look at the first entry (as described later), making this implementation suitable.</p>
+<p>In <code>PML4</code>, the information about the starting address of <code>PDPT</code> is written by taking the logical OR of that address with <code>0x03</code>. Similarly, in <code>PDPT</code>, the starting address of <code>PD</code> is written by taking the logical OR of that address with <code>0x03</code>. The reason for using <code>0x03</code> here is to set the 0th and 1st bits of <code>PML4E</code> and <code>PDPTE</code>, which correspond to the R/W permission flag and the existence flag of that entry. These bits are essential in this case.</p>
+<p>For <code>PD</code>, a loop is used to create 512 entries. It writes the value resulting from shifting the loop's index by 21 bits to the beginning of PD's address, every 8 bytes (1 entry size) from the starting address. The reason for using <code>0x83</code> here is to set the R/W permission flag, the existence confirmation flag, and the flag that determines whether to treat it as a 2MB page frame. This flag-setting allows using the value obtained by offsetting 21 bits from the index as the address (utilizing the layout of <code>PDE 2MB page</code> in the diagram). Therefore, for <code>PDE</code>, the entry at index 0 corresponds to an address of <code>0x0000_0000</code>, and the entry at index 1 corresponds to an address of <code>0x0010_0000</code>, and so on, based on the value from the loop described above.</p>
+<p>Now, let's check whether the kernel's address stored in EIP (<code>0x0100_0000</code>) is correctly converted using the Page Table we just created! As mentioned earlier, when transitioning to <code>x64 Long Mode</code>, this kernel address is treated as a 64-bit virtual address. Currently, ToyVMM (and Firecracker) loads the kernel at physical address <code>0x0100_0000</code>, and this value is stored in the <code>eip</code> register.</p>
+<p>Therefore, by treating <code>0x0100_0000</code> as a virtual address and using the conversion table mentioned above, we expect the result of the address translation to be <code>0x0100_0000</code>.</p>
+<p>Let's calculate it explicitly. When converting a 64-bit virtual address with 4-Level Page Table, you split the lower 48 bits of the virtual address into groups of <code>9 + 9 + 9 + 9 + 12</code> bits each. These four groups of 9 bits are used as the index values for each Page table entry. You look up the layout of the identified entry in this way, then check the physical address of the next Page Table, and similarly determine the entry to be used in the next Page Table based on the physical address and virtual address. Continuing this process will eventually yield the desired physical address. Since Pages are at least 4KB in size, the address value is also in multiples of 4KB, so the final 12 bits of the virtual address serve as the offset (<code>2^12 = 4KB</code>).</p>
+<img src="../02_figs/4-level-page-table_and_address_translation.svg" width="100%">
+<p>Let's remember that in this case, we have set the flag in PDE to treat it as a 2MB page frame. In this scenario, the result obtained from PDE is used directly as the physical address mapping. The 9 bits that are not used for PTE are treated as an offset, adding up to a total offset of 21 bits when combined with the original 12 bits. This 21-bit offset corresponds to the 2MB size. Similarly, when you set the flag in PDPTE, it is treated as a 1GB page frame.</p>
+<p>Based on the above discussion, let's convert <code>0x0100_0000</code>. In binary representation for clarity, it is <code>0b0..._0000_0001_0000_0000_0000_0000_0000_0000</code>. Following the virtual address conversion method, it breaks down as follows:</p>
+<table><thead><tr><th>Entry index for</th><th>Range of Virtual Address</th><th>Value</th></tr></thead><tbody>
+<tr><td>Page Map Level4 (PML4)</td><td>47 ~ 39 bit</td><td><code>0b0_0000_0000</code></td></tr>
+<tr><td>Page Directory Pointer Table (PDPT)</td><td>38 ~ 30 bit</td><td><code>0b0_0000_0000</code></td></tr>
+<tr><td>Page Directory Table (PDT)</td><td>29 ~ 21 bit</td><td><code>0b0_0000_1000</code></td></tr>
+<tr><td>Page Tables (PT)</td><td>20 ~ 12 bit</td><td><code>0b0_0000_0000</code></td></tr>
+<tr><td>-</td><td>11 ~ 0  bit (offset)</td><td><code>0b0_0000_0000</code></td></tr>
+</tbody></table>
+<p>From this breakdown, you can see that the index values for <code>PML4E</code> and <code>PDPTE</code> are <code>0</code>, so you'll check the 64 bits directly from the beginning of each table. As implemented, <code>PML4E</code> at index 0 contains the address of <code>PDPT</code>, and <code>PDPTE</code> at index 0 contains the address of <code>PDT</code>. So, you follow this structure to reach <code>PDT</code>.</p>
+<p>Now, the PDE's index value is <code>0b0_0000_1000</code> from the virtual memory address above, so you will check the 8th entry in <code>PDT</code>. The value stored in this entry for the 2MB Page frame area is <code>0b0...0000_1000</code>. Therefore, when you add the 21-bit offset to this value, you get <code>0b1_0000_0000_0000_0000_0000_0000 = 0x100_0000</code> as the resulting physical address after conversion. This matches the input virtual address.
+Hence, even after the conversion, the kernel's entry point will still be pointed to, and the kernel will begin execution in 64-bit long mode.</p>
+<img src="../02_figs/virt_phys_address_translation_example.svg" width="100%">
+<p>It's worth noting that this Page Table, as designed in this implementation, effectively enables Identity Mapping in the range of <code>2^21 ~ 2^30-1</code>.</p>
+<p><strong>Note</strong><br />
+Upon revisiting the Page Table created this time, it's important to note that there is only one Entry for PML4 and PDPT. As a result, the virtual memory address range that can be targeted is at most <code>2^31 - 1</code>. If you go beyond this range, there would be cases where indices other than 0 are used for PML4E and PDPTE.</p>
+<p>Additionally, in the PD's Entry, the 2MB page frame is enabled. Therefore, the lower 21 bits of the virtual memory address are treated as an offset. Furthermore, since the PDE's address design corresponds to an index, this Page Table effectively enables <strong>Identity Mapping in the range of <code>2^21</code> to <code>2^30 - 1</code></strong>.</p>
+<h2 id="what-to-do-next"><a class="header" href="#what-to-do-next">What to do next?</a></h2>
+<p>Up to this point, it's possible to start a Guest VM just by combining the discussed concepts. However, in this state, the Guest VM can be started but cannot be interacted with, leaving the setup somewhat incomplete. To ensure that the started Guest VM is configured as expected and for further interactions, we need to create an interface to control the Guest VM. In the next chapter, we will discuss the use of <code>Serial</code> and how to implement it within ToyVMM to allow keyboard interactions after starting the Guest VM!</p>
+<h2 id="references"><a class="header" href="#references">References</a></h2>
+<ul>
+<li><a href="https://docs.kernel.org/x86/boot.html#id1">The Linux/x86 Boot Protocol - 64-bit Boot Protocol</a></li>
+<li><a href="https://postd.cc/linux-bootstrap-4/">Linux Insides: カーネル起動プロセス part4</a></li>
+<li><a href="https://wiki.osdev.org/Interrupt_Descriptor_Table">Global Descriptor Table (wiki)</a></li>
+<li><a href="https://wiki.osdev.org/Interrupt_Descriptor_Table">Interrupt Descriptor Tabke (wiki)</a></li>
+<li><a href="https://wiki.osdev.org/Segmentation">Segmentation (wiki)</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Control_register#CR3">Control register (wiki)</a></li>
+<li><a href="https://wiki.osdev.org/Segmentation">Long mode (wiki)</a></li>
+<li><a href="https://alessandropellegrini.it/didattica/2017/aosv/1.Initial-Boot-Sequence.pdf">x86 initial boot sequence</a></li>
+<li><a href="https://back.engineering/23/08/2020/">Virtual Memory - Intro to Paging Tables</a></li>
+<li><a href="https://os.phil-opp.com/paging-introduction/">Writing an OS in Rust - Introduction to Paging</a></li>
+<li><a href="https://www.intel.com/content/dam/support/us/en/documents/processors/pentium4/sb/25366821.pdf">Intel 64 and IA-32 Architectures Software Developer's Manual</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="02-3_load_initrd.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="02-5_serial_console_implementation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="02-3_load_initrd.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="02-5_serial_console_implementation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>

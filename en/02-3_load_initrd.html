@@ -1,0 +1,327 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>02-3. Load initrd - toyvmm book (en)</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html" class="active">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">toyvmm book (en)</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/aztecher/toyvmm" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="loading-initrd"><a class="header" href="#loading-initrd">Loading initrd</a></h1>
+<p>In this document, we will discuss loading and configuring <code>initrd</code> (<code>initramfs</code>) in order to boot a VM. When we mention <code>initrd</code> in the following sections, we are implicitly referring to <code>initramfs</code>. A detailed explanation of <code>initramfs</code> itself can be found in <a href="./02-1_overview_of_booting_linux.html">Overview of booting Linux</a>, so please refer to that section for more information.</p>
+<h2 id="loading-initrd-and-setting-up-kernel-header-parameters"><a class="header" href="#loading-initrd-and-setting-up-kernel-header-parameters">Loading initrd and setting up kernel header parameters</a></h2>
+<p>The function responsible for loading <code>initrd</code> is implemented as <code>load_initrd</code>. It takes two arguments: the memory allocated for the Guest and a mutable reference to the <code>File</code> structure representing the opened <code>initrd</code> file (implementing <code>Read</code> and <code>Seek</code> traits).</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn load_initrd&lt;F&gt;(
+    vm_memory: &amp;memory::GuestMemoryMmap,
+    image: &amp;mut F,
+) -&gt; std::result::Result&lt;InitrdConfig, StartVmError&gt;
+where F: Read + Seek {
+    let size: usize;
+    // Get image size
+    match image.seek(SeekFrom::End(0)) {
+        Err(e) =&gt; return Err(StartVmError::InitrdRead(e)),
+        Ok(0) =&gt; {
+            return Err(StartVmError::InitrdRead(io::Error::new(
+                io::ErrorKind::InvalidData,
+                &quot;Initrd image seek returned a size of zero&quot;,
+            )))
+        }
+        Ok(s) =&gt; size = s as usize,
+    };
+    // Go back to the image start
+    image.seek(SeekFrom::Start(0)).map_err(StartVmError::InitrdRead)?;
+    // Get the target address
+    let address = arch::initrd_load_addr(vm_memory, size)
+        .map_err(|_| StartVmError::InitrdLoad)?;
+
+    // Load the image into memory
+    //   - read_from is defined as trait methods of Bytes&lt;A&gt;
+    //     and GuestMemoryMmap implements this trait.
+    vm_memory
+        .read_from(GuestAddress(address), image, size)
+        .map_err(|_| StartVmError::InitrdLoad)?;
+
+    Ok(InitrdConfig{
+        address: GuestAddress(address),
+        size,
+    })
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>The function performs the following steps:</p>
+<ol>
+<li>Retrieves the size of the <code>initrd</code> by seeking to the end of the file and then returning to the start.</li>
+<li>Calculates the target address in Guest memory where the <code>initrd</code> should be loaded.</li>
+<li>Loads the contents of the <code>initrd</code> file into the specified Guest memory address.</li>
+<li>Returns an <code>InitrdConfig</code> structure containing the Guest memory address and size of the loaded <code>initrd</code>.</li>
+</ol>
+<p>Once the <code>initrd</code> is loaded into memory, we need to configure the kernel's setup header. This header information is defined by the <a href="https://docs.kernel.org/x86/boot.html#the-real-mode-kernel-header">Boot Protocol</a>. In ToyVMM, these settings are primarily configured in the <code>configure_system</code> function. The table below outlines the relevant settings, which are documented in the Boot Protocol:</p>
+<table><thead><tr><th>Offset/Size</th><th>Name</th><th>Meaning</th><th>ToyVMM value</th></tr></thead><tbody>
+<tr><td>01FE/2</td><td>boot_flag</td><td>0xAA55 magic number</td><td>0xaa55</td></tr>
+<tr><td>0202/4</td><td>header</td><td>Magic signature &quot;HdrS&quot; (0x53726448)</td><td>0x5372_6448</td></tr>
+<tr><td>0210/1</td><td>type_of_loader</td><td>Boot loader identifier</td><td>0xff (undefined)</td></tr>
+<tr><td>0218/4</td><td>ramdisk_image</td><td>initrd load address (set by boot loader)</td><td>GUEST ADDRESS OF INITRD</td></tr>
+<tr><td>021C/4</td><td>ramdisk_size</td><td>initrd size (set by boot loader)</td><td>SIZE OF INITRD</td></tr>
+<tr><td>0228/4</td><td>cmd_line_ptr</td><td>32-bit pointer to the kernel command line</td><td>0x20000</td></tr>
+<tr><td>0230/4</td><td>kernel_alignment</td><td>Physical addr alignment required for kernel</td><td>0x0100_0000</td></tr>
+<tr><td>0238/4</td><td>cmdline_size</td><td>Maximum size of the kernel command line</td><td>SIZE OF CMDLINE STRING</td></tr>
+</tbody></table>
+<p>These values are written to Guest memory starting at address <code>0x7000</code>. The <code>0x7000</code> address is also stored in RSI, a vCPU register, for reference during VM startup. For details on vCPU register setup, please refer to <a href="./02-4_setup_registers_of_vcpu">Setup registers of vCPU</a>.</p>
+<h2 id="setup-e820"><a class="header" href="#setup-e820">Setup E820</a></h2>
+<p>Configuring the E820 for the Guest OS allows reporting of available memory regions to the OS and BootLoader. The settings for this are aligned with the implementation in Firecracker. The following code illustrates how the E820 entries are added based on the Guest memory configuration:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>add_e820_entry(&amp;mut params, 0, EBDA_START, E820_RAM)?;
+let first_addr_past_32bits = GuestAddress(FIRST_ADDR_PAST_32BITS);
+let end_32bit_gap_start = GuestAddress(MMIO_MEM_START);
+let himem_start = GuestAddress(HIGH_MEMORY_START);
+let last_addr = guest_mem.last_addr();
+if last_addr &lt; end_32bit_gap_start {
+    add_e820_entry(
+        &amp;mut params,
+        himem_start.raw_value() as u64,
+        last_addr.unchecked_offset_from(himem_start) as u64 + 1,
+        E820_RAM)?;
+} else {
+    add_e820_entry(
+        &amp;mut params,
+        himem_start.raw_value(),
+        end_32bit_gap_start.unchecked_offset_from(himem_start),
+        E820_RAM)?;
+    if last_addr &gt; first_addr_past_32bits {
+        add_e820_entry(
+            &amp;mut params,
+            first_addr_past_32bits.raw_value(),
+            last_addr.unchecked_offset_from(first_addr_past_32bits) + 1,
+            E820_RAM)?;
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>It would be better to understand the design of the entire address space for the Guest VM, considering the code for starting a Guest VM in ToyVMM. Therefore, I'll list the current memory design for the Guest in the following table. Please note that this information may change in the future.</p>
+<table><thead><tr><th>Guest Address</th><th>Contents</th><th>Note</th></tr></thead><tbody>
+<tr><td>0x0 - 0x9FBFF</td><td>E820</td><td></td></tr>
+<tr><td>0x7000 - 0x7FFF</td><td>Boot Params (Header)</td><td>ZERO_PAGE_START(=0x7000)</td></tr>
+<tr><td>0x9000 - 0x9FFF</td><td>PML4</td><td>Now only 1 entry (8byte), maybe expand later</td></tr>
+<tr><td>0xA000 - 0xAFFF</td><td>PDPTE</td><td>Now only 1 entry (8byte), maybe expand later</td></tr>
+<tr><td>0xB000 - 0xBFFF</td><td>PDE</td><td>Now 512 entry (4096byte)</td></tr>
+<tr><td>0x20000 -</td><td>CMDLINE</td><td>Size depends on cmdline parameter len</td></tr>
+<tr><td>0x100000</td><td></td><td>HIGH_MEMORY_START</td></tr>
+<tr><td>0x100000 - 0x7FFFFFF</td><td>E820</td><td></td></tr>
+<tr><td>0x100000 - 0x20E3000</td><td>vmlinux.bin</td><td>Size depends on vmlinux.bin's size</td></tr>
+<tr><td>0x6612000 - 0x7FFF834</td><td>initrd.img</td><td>Size depends on initrd.img's size</td></tr>
+<tr><td>0x7FFFFFF</td><td>GuestMemory last address</td><td>based on (128 &lt;&lt; 20 = 128MB = 0x8000000) - 1</td></tr>
+<tr><td>0xD0000000</td><td></td><td>MMIO_MEM_START（4GB - 768MB）</td></tr>
+<tr><td>0xD0000000 - 0xFFFFFFFF</td><td></td><td>MMIO_MEM_START - FIRST_ADDR_PAST_32BIT</td></tr>
+<tr><td>0x100000000</td><td></td><td>FIRST_ADDR_PAST_32BIT (4GB~)</td></tr>
+</tbody></table>
+<p>Upon examining the code, you can see that the address range that is designed independently of the GuestMemory size (roughly <code>0x0 ~ HIGH_MEMORY_START</code>) is commonly registered as &quot;Usable&quot; in the E820, ranging from <code>0</code> to <code>EBDA_START</code> (<code>0x9FBFF</code>).</p>
+<p>Subsequently, the range registered in the E820 changes depending on how much GuestMemory is allocated. In the current implementation, the GuestMemory is set to reserve 128MB of memory by default, so the Guest Memory ranges from <code>0x0</code> to <code>0x7FF_FFFF</code>. In this range, <code>vmlnux.bin</code> content and <code>initrd.img</code> are mapped.</p>
+<p>In other words, the logic <code>guest_mem.last_addr() = 0x7FF_FFFF &lt; 0xD000_0000 = end_32bit_gap_start</code> applies, so the range <code>HIGH_MEMORY_START ~ guest_mem.last_addr()</code> is additionally registered. In the future, as you expand, if the GuestMemory size exceeds 4GB, you will register the ranges <code>0x10_0000 ~ 0xD000_0000</code> and <code>0x1_000_0000 ~ guest_mem.last_addr()</code>.</p>
+<p>You will be able to confirm the console output when starting the VM shortly. Here, I've provided part of the output to show that the E820 entries you configured are registered:</p>
+<pre><code class="language-bash">[    0.000000] e820: BIOS-provided physical RAM map:
+[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+[    0.000000] BIOS-e820: [mem 0x0000000000100000-0x0000000007ffffff] usable
+</code></pre>
+<h2 id="references"><a class="header" href="#references">References</a></h2>
+<ul>
+<li><a href="https://nishidy.hatenablog.com/entry/2016/09/08/230637">Linuxのブートシーケンスの基礎まとめ</a></li>
+<li><a href="https://doc.kusakata.com/admin-guide/initrd.html">Linuxカーネルユーザ・管理者ガイド - 初期RAMdディスクを使用する</a></li>
+<li><a href="https://manpages.ubuntu.com/manpages/bionic/ja/man4/initrd.4.html">initrd</a></li>
+<li><a href="https://www.gcd.org/blog/2007/09/129/">initramfs(initrd)のinitをbusyboxだけで書いてみた</a></li>
+<li>[initramfsとinitrdについて](https://blog.goo.ne.jp/pepolinux/e/4d1f4b6e0f5b5ed389f</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="02-2_elf_binary_format_and_vmlinux_structure.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="02-4_setup_registers_of_vcpu.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="02-2_elf_binary_format_and_vmlinux_structure.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="02-4_setup_registers_of_vcpu.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>

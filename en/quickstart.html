@@ -1,0 +1,276 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>QuickStart - toyvmm book (en)</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html" class="active">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">toyvmm book (en)</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/aztecher/toyvmm" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="quickstart"><a class="header" href="#quickstart">QuickStart</a></h1>
+<p>This quickstart documents are based on the commit ID of <code>58cf0f68a561ee34a28ae4e73481f397f2690b51</code>.</p>
+<h3 id="architecture--os"><a class="header" href="#architecture--os">Architecture &amp; OS</a></h3>
+<p>ToyVMM only supports <strong>x86_64</strong> Linux for Guest OS.<br />
+ToyVMM has been confirmed to work with Rocky Linux 8.6, 9.1 and Ubuntu 18.04, 22.04 as the Hypervisor OS.</p>
+<h3 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h3>
+<p>ToyVMM requires <a href="https://www.linux-kvm.org/page/Main_Page">the KVM Linux kernel module.</a></p>
+<h3 id="run-virtual-machine-using-toyvmm"><a class="header" href="#run-virtual-machine-using-toyvmm">Run Virtual Machine using ToyVMM</a></h3>
+<p>Following command builds toyvmm from source, downloads the kernel binary and rootfs needed to start the VM, and starts the VM.</p>
+<pre><code class="language-bash"># download and build toyvmm from source.
+git clone https://github.com/aztecher/toyvmm.git
+cd toyvmm
+mkdir build
+CARGO_TARGET_DIR=./build cargo build --release
+
+# Download a linux kernel binary.
+wget https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/kernels/vmlinux.bin
+
+# Download a rootfs.
+wget https://s3.amazonaws.com/spec.ccfc.min/ci-artifacts/disks/x86_64/ubuntu-18.04.ext4
+
+# Run virtual machine based on ToyVMM!
+sudo ./build/release/toyvmm vm run --config examples/vm_config.json
+</code></pre>
+<p>After the guest OS startup sequence is output, the login screen is displayed, so enter both username and password as 'root' to login.</p>
+<h3 id="disk-io-in-virtual-machine"><a class="header" href="#disk-io-in-virtual-machine">Disk I/O in Virtual Machine.</a></h3>
+<p>Since we have implemented virtio-blk, the virtual machine is capable of operating block devices.<br />
+Now it recognizes the ubuntu18.04.ext4 disk image as a block device and mounts it as the root filesystem.</p>
+<pre><code class="language-bash">lsblk
+&gt; NAME MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+&gt; vda  254:0    0  384M  0 disk /
+</code></pre>
+<p>Therefore, if you create a file in the VM and then recreate the VM using the same image, the file you created will be found.
+This behavior is significantly different from a initramfs (rootfs that is extracted on RAM).</p>
+<pre><code class="language-bash"># Create 'hello.txt' in VM.
+echo &quot;hello virtual machine&quot; &gt; hello.txt
+cat hello.txt
+&gt; hello virtual machine
+
+# Rebooting will cause the ToyVMM process to terminate.
+reboot -f
+
+# In the host, please restart VM and login again.
+# Afterward, you can found the file you created in the VM during its previous run.
+cat hello.txt
+&gt; hello virtual machine
+</code></pre>
+<h3 id="network-io-in-virtual-mahcine"><a class="header" href="#network-io-in-virtual-mahcine">Network I/O in Virtual Mahcine.</a></h3>
+<p>Since we have implemented virtio-net, the virtual machine is capable of operating network device.<br />
+Now, it recognizes the <code>eth0</code> network interface.</p>
+<pre><code class="language-bash">ip link show eth0
+&gt; 2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
+&gt;     link/ether 52:5f:7f:b3:f8:81 brd ff:ff:ff:ff:ff:ff
+</code></pre>
+<p>And toyvmm creates the host-side tap device named <code>vmtap0</code> that connect to the virtual machine interface.</p>
+<pre><code class="language-bash">ip link show vmtap0
+&gt; 334: vmtap0: &lt;BROADCAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UNKNOWN mode DEFAULT group default qlen 1000
+&gt;     link/ether 26:e9:5c:02:3c:19 brd ff:ff:ff:ff:ff:ff
+</code></pre>
+<p>Therefore, by assigning appropriate IP addresses to the interfaces on both the VM side and the Host side, communication can be established between the HV and the VM.</p>
+<pre><code class="language-bash"># Assign ip address 192.168.0.10/24 to 'eth0' in vm.
+ip addr add 192.168.0.10/24 dev eth0
+
+# Assign ip address 192.168.0.1/24 to 'vmtap0' in host.
+sudo ip addr add 192.168.0.1/24 dev vmtap0
+
+# Host -&gt; VM. ping to VM interface ip from host.
+ping -c 1 192.168.0.10
+
+# VM -&gt; Host. Ping to Host interface ip from vm.
+ping -c 1 192.168.0.1
+</code></pre>
+<p>Additionally, by setting the default route on the VM side, and configuring iptables and enabling IP forwarding on the host side, you can also allow the VM to access the Internet.<br />
+However, this will not be covered in detail here.</p>
+<h3 id="whats-next"><a class="header" href="#whats-next">What's next?</a></h3>
+<p>If you are not familiar with KVM-based VMs, I suggest you start reading from <a href="./01_running_tiny_code_in_vm.html">01. Running Tiny Code in VM</a>.
+If not, please read the topics that interest you.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="01_running_tiny_code_in_vm.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="01_running_tiny_code_in_vm.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>

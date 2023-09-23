@@ -1,0 +1,881 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>02-5. Serial Console implementation - toyvmm book (en)</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html" class="active">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">toyvmm book (en)</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/aztecher/toyvmm" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="serial-console-implementation"><a class="header" href="#serial-console-implementation">Serial Console implementation</a></h1>
+<h2 id="about-serial-uart-and-ttys0"><a class="header" href="#about-serial-uart-and-ttys0">About Serial UART and ttyS0</a></h2>
+<p>UART(Universal Asynchronous Receiver/Transmitter) is an asynchronous serial communication standard used to connect computers and microcontrollers to peripheral devices. UART allows for the conversion of parallel and serial signals, enabling the conversion of input parallel data into serial data and transmitting it to the other party over a communication line. Integrated circuits designed for this purpose, known as 8250 UART devices, were manufactured, followed by various other families.</p>
+<p>Now, in this case, we are attempting to boot the Guest OS (Linux), and having a serial console is quite useful for debugging and other purposes. A serial console sends all console outputs of the Guest to the serial port. With the serial terminal properly configured, you can remotely monitor the system's boot status or log in to the system via the serial port. In this instance, we will use this method to check the state of a Guest VM running on ToyVMM and perform operations within the Guest.</p>
+<p>To output console messages to the serial port, it is necessary to set <code>console=ttyS0</code> as a kernel boot parameter. In the current implementation of ToyVMM, this value is provided as the default.</p>
+<p>The challenge lies on the side that receives this, the serial terminal. Since the I/O port address corresponding to the serial port is fixed, ToyVMM's layer will receive instructions like <code>KVM_EXIT_IO</code> for the nearby address. In other words, it needs to properly handle output information to the serial console issued from the Guest OS and other necessary setup requests. This can be achieved by emulating the UART device. Furthermore, by emulating the device, if we can output console output to the standard output and reflect our standard input to the Guest VM, when starting the VM from ToyVMM, we can confirm the boot information and perform operations on the Guest from our local terminal.</p>
+<p>In summary, we need to create something like the conceptual diagram below:</p>
+<img src="../02_figs/overview_serial_device.svg" width="100%">
+<p>We will explain this in detail in the following sections.</p>
+<h2 id="serial-uart"><a class="header" href="#serial-uart">Serial UART</a></h2>
+<p>For detailed information about Serial UART, you can refer to the following resources by Lammet Bies and Wikibooks, which provide rich information:</p>
+<ul>
+<li><a href="https://www.lammertbies.nl/comm/info/serial-uart">Serial UART information (Lammet Bies)</a></li>
+<li><a href="https://en.wikibooks.org/wiki/Serial_Programming/8250_UART_Programming">Serial Programming / 8250 UART Programming (Wikibooks)</a></li>
+</ul>
+<p>The following figures are based on Lammet's document, with a brief explanation of each bit of each register. Although this diagram was created by me personally in writing this document, it is attached in the hope that it will help readers understand the meaning of each register and bit. However, the meaning of each register and bit is not explained in this document, so please refer to the above document for confirmation:</p>
+<img src="../02_figs/serial_uart_registers.svg" width="100%">
+<p>Basically, UART operations are performed by manipulating the registers and bits shown above. In our case, we need to emulate this in software, and we plan to do this using <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a>. In the following sections, we'll briefly compare the implementation of <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a> with the above specifications.</p>
+<h2 id="software-implementation-of-serial-device-using-rust-vmmvm-superio"><a class="header" href="#software-implementation-of-serial-device-using-rust-vmmvm-superio">Software Implementation of Serial Device using rust-vmm/vm-superio</a></h2>
+<h3 id="initial-value-settingsrw-implementation"><a class="header" href="#initial-value-settingsrw-implementation">Initial Value Settings/RW Implementation</a></h3>
+<p>Here, we will review the implementation of the serial device using <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a> while comparing it with the above specifications. I encourage you to obtain the code from the link provided and inspect it for yourself. The following content is based on version <code>vm-superio-0.6.0</code>, so please note that it may have changed in the latest code.</p>
+<p>First, let's organize some initial values for certain variables. <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a> was originally designed for VMM usage, so it initializes certain register values and doesn't anticipate changes.</p>
+<table><thead><tr><th>Variable</th><th>DEFAULT VALUE</th><th>Meaning</th><th>REGISTER</th></tr></thead><tbody>
+<tr><td>baud_divisor_low</td><td>0x0c</td><td>Baud rate 9600 bps</td><td></td></tr>
+<tr><td>baud_divisor_high</td><td>0x00</td><td>Baud rate 9600 bps</td><td></td></tr>
+<tr><td>interrupt_enable</td><td>0x00</td><td>No interrupts enabled</td><td>IER</td></tr>
+<tr><td>interrupt_identification</td><td>0b0000_0001</td><td>No pending interrupt</td><td>IIR</td></tr>
+<tr><td>line_control</td><td>0b0000_0011</td><td>8-bit word length</td><td>LCR</td></tr>
+<tr><td>line_status</td><td>0b0110_0000</td><td>(1)</td><td>LSR</td></tr>
+<tr><td>modem_control</td><td>0b0000_1000</td><td>(2)</td><td>MCR</td></tr>
+<tr><td>modem_status</td><td>0b1011_0000</td><td>(3)</td><td>MSR</td></tr>
+<tr><td>scratch</td><td>0b0000_0000</td><td></td><td>SCR</td></tr>
+<tr><td>in_buffer</td><td>Vec::new()</td><td>Vector values (buffer)</td><td>-</td></tr>
+</tbody></table>
+<ul>
+<li>(1) Setting THR empty-related bits. Setting these bits means that data can be received at any time. This represents the assumption that it will be used as a virtual device.</li>
+<li>(2) Many UARTs enable interrupts by default by setting Auxiliary Output 2 to 1.</li>
+<li>(3) Connected state and hardware data flow initialization.</li>
+</ul>
+<p>Now, let's look at the processing when a write request is received. As a result of <code>KVM_EXIT_IO</code>, we receive the address where IO occurred and the data to be written. On the ToyVMM side, we calculate the appropriate device (in this case, the Serial UART device) and its offset from the base address based on these values and call the <code>write</code> function defined in <code>vm-superio</code>. The following content is a simplified table representing the processing of <code>Serial::write</code>. In general, it involves straightforward register value modification, with a few exceptions:</p>
+<table><thead><tr><th>Variable</th><th>OFFSET(u8)</th><th>Additional Conditions</th><th>Write</th></tr></thead><tbody>
+<tr><td>DLAB_LOW_OFFSET</td><td>0</td><td>is_dlab_set = true</td><td>Modify <code>self.baud_divisor_low</code></td></tr>
+<tr><td>DLAB_HIGH_OFFSET</td><td>1</td><td>is_dlab_set = true</td><td>Modify <code>self.baud_divisor_high</code></td></tr>
+<tr><td>DATA_OFFSET</td><td>0</td><td>- (is_dlab_set = false)</td><td>(1)</td></tr>
+<tr><td>IER_OFFSET</td><td>1</td><td>- (is_dlab_set = false)</td><td>(2)</td></tr>
+<tr><td>LCR_OFFSET</td><td>3</td><td>-</td><td>Modify <code>self.line_control</code></td></tr>
+<tr><td>MCR_OFFSET</td><td>4</td><td>-</td><td>Modify <code>self.modem_control</code></td></tr>
+<tr><td>SCR_OFFSET</td><td>7</td><td>-</td><td>Modify <code>self.scratch</code></td></tr>
+</tbody></table>
+<ul>
+<li>(1) Depending on the current state of the Serial, we handle cases where LOOP_BACK_MODE (MCR bit 4) is enabled and when it is not enabled. 
+<ul>
+<li>If it is enabled, it simulates passing what is written to the transmit register directly to the receive register (loopback), which is not important in this context.</li>
+<li>If it is not enabled, it writes the data to be written to the output and depends on the existing configuration to generate interrupts.
+<ul>
+<li>As shown in the table above, we do not support changing IIR due to write from outside, and the default value is set to <code>0b0000_0001</code>.</li>
+<li>If the THR empty bit flag of IER is set for IER_OFFSET, it sets the corresponding flag for THR empty in IIR and triggers an interrupt.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>(2) Among the bits of IER, only bits 0-3 are masked, and the result is written back to <code>self.interrupt_enable</code>.</li>
+</ul>
+<p>Next, let's look at the processing when a read request is received. Similarly, we present the processing of <code>Serial::read</code> in a simplified table. Unlike write, in the case of read, it mainly involves returning data as the result.</p>
+<table><thead><tr><th>Variable</th><th>OFFSET(u8)</th><th>Additional Conditions</th><th>Read</th></tr></thead><tbody>
+<tr><td>DLAB_LOW_OFFSET</td><td>0</td><td>is_dlab_set = true</td><td>Read <code>self.baud_divisor_low</code></td></tr>
+<tr><td>DLAB_HIGH_OFFSET</td><td>1</td><td>is_dlab_set = true</td><td>Read <code>self.baud_divisor_high</code></td></tr>
+<tr><td>DATA_OFFSET</td><td>0</td><td>- (is_dlab_set = false)</td><td>(1)</td></tr>
+<tr><td>IER_OFFSET</td><td>1</td><td>- (is_dlab_set = false)</td><td>Read <code>self.interrupt_enable</code></td></tr>
+<tr><td>IIR_OFFSET</td><td>2</td><td>-</td><td>(2)</td></tr>
+<tr><td>LCR_OFFSET</td><td>3</td><td>-</td><td>Read <code>self.line_control</code></td></tr>
+<tr><td>MCR_OFFSET</td><td>4</td><td>-</td><td>Read <code>self.modem_control</code></td></tr>
+<tr><td>LSR_OFFSET</td><td>5</td><td>-</td><td>Read <code>self.line_status</code></td></tr>
+<tr><td>MSR_OFFSET</td><td>6</td><td>-</td><td>(3)</td></tr>
+<tr><td>SCR_OFFSET</td><td>7</td><td>-</td><td>Read <code>self.scratch</code></td></tr>
+</tbody></table>
+<ul>
+<li>(1) Reads data from the buffer held by the Serial structure. In the current implementation, this buffer is only filled by write in loopback mode, so read operations related to this region are not issued in the boot sequence of the OS.</li>
+<li>(2) Returns the result of <code>self.interrupt_identification</code> | <code>0b1100_0000 (FIFO enabled)</code> and resets it to the default value.</li>
+<li>(3) Depending on whether the current state is loopback mode, it handles differently.
+<ul>
+<li>In the case of loopback, it adjusts appropriately (not important for this context).</li>
+<li>In the case of non-loopback, it straightforwardly returns the value of <code>self.modem_status</code>.</li>
+</ul>
+</li>
+</ul>
+<h2 id="usage-of-rust-vmmvm-superio-in-toyvmm"><a class="header" href="#usage-of-rust-vmmvm-superio-in-toyvmm">Usage of rust-vmm/vm-superio in ToyVMM</a></h2>
+<p>In ToyVMM, we use <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a> to handle <code>KVM_EXIT_IO</code> contents. Additionally, two things need to be considered:</p>
+<ul>
+<li>Outputting console output destined for the serial port to the standard output to allow monitoring of the boot sequence and internal state of the Guest VM.</li>
+<li>Passing the content of standard input to the Guest VM.</li>
+</ul>
+<p>In the following sections, we'll go through each of these in order.</p>
+<h3 id="outputting-console-output-destined-for-the-serial-port-to-standard-output"><a class="header" href="#outputting-console-output-destined-for-the-serial-port-to-standard-output">Outputting Console Output Destined for the Serial Port to Standard Output</a></h3>
+<p>To monitor the boot sequence and internal state of the Guest VM, we will redirect console output destined for the serial port to the standard output. &quot;Console output destined for the serial port&quot; corresponds to the case of <code>KVM_EXIT_IO_OUT</code> where <code>KVM_EXIT_IO</code> is issued for the &quot;IO Port address for Serial&quot;. The code section below handles this:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>...
+loop {
+  match vcpu.run() {
+      Ok(run) =&gt; match run {
+          ...
+          VcpuExit::IoOut(addr, data) =&gt; {
+              io_bus.write(addr as u64, data);
+          }
+      ...  
+      }
+    }
+}
+...
+<span class="boring">}
+</span></code></pre></pre>
+<p>Here, as a result of <code>KVM_EXIT_IO_OUT</code>, we receive the address and data to be written. On the ToyVMM side, we simply call <code>io_bus.write</code> with these values. The setup for this <code>io_bus</code> is done as follows:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let mut io_bus = IoBus::new();
+let com_evt_1_3 = EventFdTrigger::new(EventFd::new(libc::EFD_NONBLOCK).unwrap());
+let stdio_serial = Arc::new(Mutex::new(SerialDevice {
+    serial: serial::Serial::with_events(
+        com_evt_1_3.try_clone().unwrap(),
+        SerialEventsWrapper {
+            buffer_read_event_fd: None,
+        },
+        Box::new(std::io::stdout()),
+    ),
+}));
+io_bus.insert(stdio_serial.clone(), 0x3f8, 0x8).unwrap();
+vm.fd().register_irqfd(&amp;com_evt_1_3, 4).unwrap();
+<span class="boring">}
+</span></code></pre></pre>
+<p>The setup above requires some explanation, so let's go through it step by step. In essence, it accomplishes the following:</p>
+<ul>
+<li>Initializes an I/O Bus represented by <code>IoBus</code> and initializes the eventfd for interrupts.</li>
+<li>Initializes the Serial Device. During initialization, we provide an <code>eventfd</code> for generating interrupts in the Guest and an FD (<code>std::io::stdout()</code>) for standard output.</li>
+<li>Registers the Serial Device we initialized with the <code>IoBus</code>. During registration, we specify <code>0x3f8</code> as the base and <code>0x8</code> as the range.
+<ul>
+<li>This means that the range of <code>0x8</code> starting from the base <code>0x3f8</code> represents the address space used by this Serial Device.</li>
+</ul>
+</li>
+</ul>
+<h4 id="handling-the-io-bus"><a class="header" href="#handling-the-io-bus">Handling the I/O Bus</a></h4>
+<p>The address value passed via <code>KVM_EXIT_IO</code> becomes the value within the entire address space. On the other hand, the <code>read/write</code> implementation in <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a> works based on an offset value from the Serial Device's base address. Therefore, there's a need for processing to bridge this gap.</p>
+<p>You could simply calculate the offset, but in Firecracker, considering future extensibility (using I/O Ports for devices other than Serial), there's a <code>Bus</code> structure representing the I/O Bus. This structure allows devices to be registered along with <code>BusRange</code> (a structure representing the base address and address range for devices on the bus). Furthermore, when an I/O at a specific address occurs, the mechanism checks that address, retrieves the device registered in the corresponding address range, and performs I/O on that device using the offset from the base address.</p>
+<p>For instance, the <code>write</code> function is implemented as follows, where it retrieves the registered device and its offset based on the address information using the <code>get_device</code> function, and then calls the <code>write</code> function implemented in that device with the offset.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn write(&amp;self, addr: u64, data: &amp;[u8]) -&gt; bool {
+    if let Some((offset, dev)) = self.get_device(addr) {
+        // OK to unwrap as lock() failing is a serious error condition and should panic.
+        dev.lock()
+            .expect(&quot;Failed to acquire device lock&quot;)
+            .write(offset, data);
+        true
+    } else {
+        false
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Let's consider the Serial device as an example. As mentioned earlier, <code>KVM_EXIT_IO_OUT</code> for the Serial device from the Guest VM occurs within an address range of 8 bytes with a base address of <code>0x3f8</code>. ToyVMM's IoBus also registers the Serial Device with the same address base and range. For example, when you trap an instruction that writes <code>0b1001_0011</code> to <code>0x3fb</code> as <code>KVM_EXIT_IO_OUT</code>, it interprets this instruction as writing <code>0b1001_0011</code> to <code>LCR</code> at the position <code>0x3</code> from the base address <code>0x3f8</code>.</p>
+<h4 id="interrupt-notification-to-guest-vm-via-eventfdirqfd"><a class="header" href="#interrupt-notification-to-guest-vm-via-eventfdirqfd">Interrupt Notification to Guest VM via eventfd/irqfd</a></h4>
+<p>Now, let's discuss KVM and interrupts. We will reference some Linux source code, mainly from version <code>v4.18</code>.</p>
+<p>:warning: The following information is mainly based on source code and may not capture all the details of state transitions. If you find any inaccuracies, please let me know in the comments.</p>
+<p>In <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a>, during Serial initialization, it requires an <a href="https://docs.rs/vmm-sys-util/0.6.1/vmm_sys_util/eventfd/struct.EventFd.html"><code>EventFd</code></a> as its first argument. This is a wrapper for <a href="https://man7.org/linux/man-pages/man2/eventfd.2.html">eventfd</a> in Linux. Eventfd allows inter-process and process-to-kernel event notifications.</p>
+<p>Next is irqfd. irqfd is a mechanism based on eventfd that allows injecting interrupts into a VM. In simple terms, it's like having one end of eventfd held by KVM, and the other end's notifications are interpreted as interrupts to the Guest VM. This irqfd-based interrupt is meant to emulate interrupts from the external world to the Guest VM, which corresponds to regular system interrupts from peripheral devices in a typical system. The reverse direction of interrupts is handled using the <code>ioeventfd</code> mechanism, which we'll omit for now.</p>
+<p>Let's examine how irqfd is connected to Guest VM interrupts by looking at the source code. When you perform an ioctl with <code>KVM_IRQFD</code> against KVM, it goes through the KVM processing with the data passed to <code>kvm_irqfd</code> and <code>kvm_irqfd_assign</code>. In the <code>kvm_irqfd_assign</code> function, an instance of the <code>kvm_kernel_irqfd</code> structure is created. At this point, settings are made based on additional information passed during the ioctl. Particularly, the <code>gsi</code> field in the <code>kvm_kernel_irqfd</code> structure is set based on the value passed as an argument during the ioctl. This <code>gsi</code> corresponds to the index of the interrupt table for the Guest, so when making the ioctl, you specify which interrupt table entry you want to use along with the eventfd. ToyVMM sets this up with a line like this:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>vm.fd().register_irqfd(&amp;com_evt_1_3, 4).unwrap();
+<span class="boring">}
+</span></code></pre></pre>
+<p>This is defined as a method in the <code>kvm_ioctl::VmFd</code> structure.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn register_irqfd(&amp;self, fd: &amp;EventFd, gsi: u32) -&gt; Result&lt;()&gt; {
+    let irqfd = kvm_irqfd {
+        fd: fd.as_raw_fd() as u32,
+        gsi,
+        ..Default::default()
+    };
+    // Safe because we know that our file is a VM fd, we know the kernel will only read
+    // the correct amount of memory from our pointer, and we verify the return result.
+    let ret = unsafe { ioctl_with_ref(self, KVM_IRQFD(), &amp;irqfd) };
+    if ret == 0 {
+        Ok(())
+    } else {
+        Err(errno::Error::last())
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>In other words, in the aforementioned setup, the eventfd (<code>com_evt_1_3</code>) used by the Serial device has been configured with GSI=4 (the Guest VM's interrupt table index for the COM1 port). Therefore, any <code>write</code> operation performed on <code>com_evt_1_3</code> results in an interrupt being sent to the Guest VM as if it were generated from COM1. From the Guest's perspective, this means that an interrupt originated from the Serial device downstream of COM1, leading to the invocation of the Guest VM's COM1 interrupt handler.</p>
+<p>Now, let's discuss the setup of the Guest-side Interrupt Table (GSI: Global System Interrupt Table) and how and when it's established. In short, these tables are set up by issuing an ioctl to KVM with <code>KVM_CREATE_IRQCHIP</code>. This operation creates two interrupt controllers, the <code>PIC</code> and <code>IOAPIC</code> (internally, the <code>kvm_pic_init</code> function handles PIC initialization, registers read/write ops, and sets it in <code>kvm-&gt;arch.vpic</code>. Similarly, <code>kvm_ioapic_init</code> initializes the IOAPIC, registers read/write ops, and sets it in <code>kvm-&gt;arch.vioapic</code>). These hardware components, such as the PIC and IOAPIC, are implemented within KVM for the purpose of acceleration, so there's no need to emulate them separately. While you could delegate this task to qemu, we'll omit this detail here since we're not using it.</p>
+<p>Furthermore, the <code>kvm_setup_default_irq_routing</code> function sets up default IRQ routing. This process determines which handler will be invoked for each GSI-based interrupt. Let's take a closer look at the contents of <code>kvm_setup_default_irq_routing</code>. This function calls <code>kvm_set_irq_routing</code>, where the essential processing takes place. Here, a <code>kvm_irq_routing_table</code> is created and populated with <code>kvm_kernel_irq_routing_entry</code> structures that represent the mapping from GSI to IRQ.</p>
+<p>The <code>kvm_kernel_irq_routing_entry</code> structures are populated using a loop that iterates through a <code>default_routing</code> array. Here's how <code>default_routing</code> is defined along with related macros:</p>
+<pre><code class="language-C">#define SELECT_PIC(irq) \
+    ((irq) &lt; 8 ? KVM_IRQCHIP_PIC_MASTER : KVM_IRQCHIP_PIC_SLAVE)
+
+#define IOAPIC_ROUTING_ENTRY(irq) \
+    { .gsi = irq, .type = KVM_IRQ_ROUTING_IRQCHIP, \
+      .u.irqchip = { .irqchip = KVM_IRQCHIP_IOAPIC, .pin = (irq) } }
+
+#define ROUTING_ENTRY1(irq) IOAPIC_ROUTING_ENTRY(irq)
+
+#define PIC_ROUTING_ENTRY(irq) \
+    { .gsi = irq, .type = KVM_IRQ_ROUTING_IRQCHIP, \
+      .u.irqchip = { .irqchip = SELECT_PIC(irq), .pin = (irq) % 8 } }
+
+#define ROUTING_ENTRY2(irq) \
+    IOAPIC_ROUTING_ENTRY(irq), PIC_ROUTING_ENTRY(irq)
+
+static const struct kvm_irq_routing_entry default_routing[] = {
+    ROUTING_ENTRY2(0), ROUTING_ENTRY2(1),
+    ROUTING_ENTRY2(2), ROUTING_ENTRY2(3),
+    ROUTING_ENTRY2(4), ROUTING_ENTRY2(5),
+    ROUTING_ENTRY2(6), ROUTING_ENTRY2(7),
+    ROUTING_ENTRY2(8), ROUTING_ENTRY2(9),
+    ROUTING_ENTRY2(10), ROUTING_ENTRY2(11),
+    ROUTING_ENTRY2(12), ROUTING_ENTRY2(13),
+    ROUTING_ENTRY2(14), ROUTING_ENTRY2(15),
+    ROUTING_ENTRY1(16), ROUTING_ENTRY1(17),
+    ROUTING_ENTRY1(18), ROUTING_ENTRY1(19),
+    ROUTING_ENTRY1(20), ROUTING_ENTRY1(21),
+    ROUTING_ENTRY1(22), ROUTING_ENTRY1(23),
+};
+</code></pre>
+<p>As you can see, IRQ numbers 0-15 are passed to <code>ROUTING_ENTRY2</code>, and IRQ numbers 16-23 are passed to <code>ROUTING_ENTRY1</code>. <code>ROUTING_ENTRY2</code> calls both <code>IOAPIC_ROUTING_ENTRY</code> and <code>PIC_ROUTING_ENTRY</code>, while <code>ROUTING_ENTRY1</code> calls <code>IOAPIC_ROUTING_ENTRY</code> only, creating structures with the necessary information.</p>
+<p>These structures are used to set up each <code>.u.irqchip.irqchip</code> value (<code>KVM_IRQCHIP_PIC_SLAVE</code>, <code>KVM_IRQCHIP_PIC_MASTER</code>, <code>KVM_IRQCHIP_IOAPIC</code>) appropriately in the <code>kvm_set_routing_entry</code> function, depending on the IRQ. This function performs callbacks (<code>kvm_set_pic_irq</code>, <code>kvm_set_ioapic_irq</code>) and any necessary configurations when an interrupt occurs. We'll discuss these callbacks in more detail later.</p>
+<pre><code class="language-C">int kvm_set_routing_entry(struct kvm *kvm,
+                          struct kvm_kernel_irq_routing_entry *e,
+                          const struct kvm_irq_routing_entry *ue)
+{
+    /* We can't check irqchip_in_kernel() here as some callers are
+     * currently initializing the irqchip. Other callers should therefore
+     * check kvm_arch_can_set_irq_routing() before calling this function.
+     */
+    switch (ue-&gt;type) {
+    case KVM_IRQ_ROUTING_IRQCHIP:
+        if (irqchip_split(kvm))
+            return -EINVAL;
+        e-&gt;irqchip.pin = ue-&gt;u.irqchip.pin;
+        switch (ue-&gt;u.irqchip.irqchip) {
+        case KVM_IRQCHIP_PIC_SLAVE:
+            e-&gt;irqchip.pin += PIC_NUM_PINS / 2;
+            /* fall through */
+        case KVM_IRQCHIP_PIC_MASTER:
+            if (ue-&gt;u.irqchip.pin &gt;= PIC_NUM_PINS / 2)
+                return -EINVAL;
+            e-&gt;set = kvm_set_pic_irq;
+            break;
+        case KVM_IRQCHIP_IOAPIC:
+            if (ue-&gt;u.irqchip.pin &gt;= KVM_IOAPIC_NUM_PINS)
+                return -EINVAL;
+            e-&gt;set = kvm_set_ioapic_irq;
+            break;
+        default:
+            return -EINVAL;
+        }
+        e-&gt;irqchip.irqchip = ue-&gt;u.irqchip.irqchip;
+        break;
+...
+</code></pre>
+<p>Now, let's return to the discussion of <code>irqfd</code>. Although not mentioned earlier, the <code>kvm_irqfd_assign</code> function includes the <code>init_waitqueue_func_entry(&amp;irqfd-&gt;wait, irqfd_wakeup)</code> process, registering <code>irqfd_wakeup</code> with <code>&amp;irqfd-&gt;wait-&gt;func</code>. This function is called when an interrupt occurs, and it invokes <code>schedule_work(&amp;irqfd-&gt;inject)</code>.</p>
+<p>The <code>inject</code> field is also initialized within the <code>kvm_irqfd_assign</code> function, resulting in a call to the <code>irqfd_inject</code> function. Inside <code>irqfd_inject</code>, the <code>kvm_set_irq</code> function is called. </p>
+<p>The <code>kvm_set_irq</code> function lists entries with the incoming IRQ number and calls their <code>set</code> callbacks. This means that functions like <code>kvm_set_pic_irq</code> and <code>kvm_set_ioapic_irq</code>, as described earlier, will be called based on the routing information.</p>
+<img src="../02_figs/kvm_irq_gsi_routing.svg" width="100%">
+<p>The following explanation will go into a little more depth on interrupt processing, but since they are not necessary for understanding ToyVMM, you may skip to <a href="#toyvmm-serial-console">ToyVMM serial console</a>.</p>
+<p>Let's take a closer look at the <code>kvm_set_pic_irq</code> handler, which is responsible for handling interrupts. While this discussion slightly deviates from the main topic, it's a good opportunity to explore it more thoroughly.
+<code>kvm_set_pic_irq</code> simply utilizes the <code>kvm_pic_set_irq</code> function, passing the relevant parameters.</p>
+<pre><code class="language-C">static int kvm_set_pic_irq(struct kvm_kernel_irq_routing_entry *e,
+                           struct kvm *kvm, int irq_source_id, int level,
+                           bool line_status)
+{
+    struct kvm_pic *pic = kvm-&gt;arch.vpic;
+    return kvm_pic_set_irq(pic, e-&gt;irqchip.pin, irq_source_id, level);
+}
+</code></pre>
+<p>Let's inspect the implementation of <code>kvm_pic_set_irq</code>:</p>
+<pre><code class="language-C">int kvm_pic_set_irq(struct kvm_pic *s, int irq, int irq_source_id, int level)
+{
+    int ret, irq_level;
+
+    BUG_ON(irq &lt; 0 || irq &gt;= PIC_NUM_PINS);
+
+    pic_lock(s);
+    irq_level = __kvm_irq_line_state(&amp;s-&gt;irq_states[irq],
+                                     irq_source_id, level);
+    ret = pic_set_irq1(&amp;s-&gt;pics[irq &gt;&gt; 3], irq &amp; 7, irq_level);
+    pic_update_irq(s);
+    trace_kvm_pic_set_irq(irq &gt;&gt; 3, irq &amp; 7, s-&gt;pics[irq &gt;&gt; 3].elcr,
+                          s-&gt;pics[irq &gt;&gt; 3].imr, ret == 0);
+    pic_unlock(s);
+
+    return ret;
+}
+</code></pre>
+<p>In <code>pic_set_irq1</code>, the IRQ level is set, and then <code>pic_update_irq</code> calls the <code>pic_irq_request</code> and updates the <code>kvm-&gt;arch.vpic</code> structure.</p>
+<pre><code class="language-C">/*
+ * raise irq to CPU if necessary. must be called every time the active
+ * irq may changejjj
+ */
+static void pic_update_irq(struct kvm_pic *s)
+{
+	int irq2, irq;
+
+	irq2 = pic_get_irq(&amp;s-&gt;pics[1]);
+	if (irq2 &gt;= 0) {
+		/*
+		 * if irq request by slave pic, signal master PIC
+		 */
+		pic_set_irq1(&amp;s-&gt;pics[0], 2, 1);
+		pic_set_irq1(&amp;s-&gt;pics[0], 2, 0);
+	}
+	irq = pic_get_irq(&amp;s-&gt;pics[0]);
+	pic_irq_request(s-&gt;kvm, irq &gt;= 0);
+}
+
+/*
+ * callback when PIC0 irq status changed
+ */
+static void pic_irq_request(struct kvm *kvm, int level)
+{
+	struct kvm_pic *s = kvm-&gt;arch.vpic;
+
+	if (!s-&gt;output)
+		s-&gt;wakeup_needed = true;
+	s-&gt;output = level;
+
+}
+</code></pre>
+<p>After that, <code>kvm_pic_set_irq</code> invokes <code>pic_unlock</code> function.<br />
+This function is a little more import because if the <code>wakeup_needed</code> field is <code>true</code>, then invokes <code>kvm_vcpu_kick</code> function for vCPU.</p>
+<pre><code class="language-C">static void pic_unlock(struct kvm_pic *s)
+    __releases(&amp;s-&gt;lock)
+{
+    bool wakeup = s-&gt;wakeup_needed;
+    struct kvm_vcpu *vcpu;
+    int i;
+
+    s-&gt;wakeup_needed = false;
+
+    spin_unlock(&amp;s-&gt;lock);
+
+    if (wakeup) {
+        kvm_for_each_vcpu(i, vcpu, s-&gt;kvm) {
+            if (kvm_apic_accept_pic_intr(vcpu)) {
+                kvm_make_request(KVM_REQ_EVENT, vcpu);
+                kvm_vcpu_kick(vcpu);
+                return;
+            }
+        }
+    }
+}
+
+void kvm_vcpu_kick(struct kvm_vcpu *vcpu)
+{
+    int me;
+    int cpu = vcpu-&gt;cpu;
+
+    if (kvm_vcpu_wake_up(vcpu))
+        return;
+
+    me = get_cpu();
+    if (cpu != me &amp;&amp; (unsigned)cpu &lt; nr_cpu_ids &amp;&amp; cpu_online(cpu))
+        if (kvm_arch_vcpu_should_kick(vcpu))
+            smp_send_reschedule(cpu);
+    put_cpu();
+}
+</code></pre>
+<p>And the result of invoking <code>smp_send_reschedule</code> function in <code>kvm_vcpu_kick</code>, <code>native_smp_send_reschedule</code> function is called.</p>
+<pre><code class="language-C">
+static void native_smp_send_reschedule(int cpu)
+{
+    if (unlikely(cpu_is_offline(cpu))) {
+        WARN_ON(1);
+        return;
+    }
+    apic-&gt;send_IPI(cpu, RESCHEDULE_VECTOR);
+}
+</code></pre>
+<p>By invoking <code>smp_send_reschedule</code>, an IPI (Inter-Processor Interrupt) is sent to another CPU, prompting it to reschedule. This results in an interrupt being inserted into the vCPU, causing a <code>VMExit</code>. Consequently, the vCPU is scheduled when the interrupt is delivered.</p>
+<p>Now, let's briefly review the process of how interrupts are inserted. When <code>KVM_RUN</code> is executed, the following steps are performed (focusing solely on interrupt insertion, omitting other extensive processing):</p>
+<pre><code>kvm_arch_vcpu_ioctl_run
+ -&gt; vcpu_run
+ -&gt; vcpu_enter_guest
+ -&gt; inject_pending_event
+ -&gt; kvm_cpu_has_injectable_intr
+</code></pre>
+<p>Within <code>kvm_cpu_has_injectable_intr</code>, the <code>kvm_cpu_has_extint</code> function is called. In this case, it likely returns <code>1</code>, probably based on the value of <code>s-&gt;output</code> set by <code>pic_irq_request</code>.</p>
+<p>Therefore, the following part of the <code>inject_pending_event</code> function is reached:</p>
+<pre><code class="language-C">	} else if (kvm_cpu_has_injectable_intr(vcpu)) {
+		/*
+		 * Because interrupts can be injected asynchronously, we are
+		 * calling check_nested_events again here to avoid a race condition.
+		 * See https://lkml.org/lkml/2014/7/2/60 for discussion about this
+		 * proposal and current concerns.  Perhaps we should be setting
+		 * KVM_REQ_EVENT only on certain events and not unconditionally?
+		 */
+		if (is_guest_mode(vcpu) &amp;&amp; kvm_x86_ops-&gt;check_nested_events) {
+			r = kvm_x86_ops-&gt;check_nested_events(vcpu, req_int_win);
+			if (r != 0)
+				return r;
+		}
+		if (kvm_x86_ops-&gt;interrupt_allowed(vcpu)) {
+			kvm_queue_interrupt(vcpu, kvm_cpu_get_interrupt(vcpu),
+					    false);
+			kvm_x86_ops-&gt;set_irq(vcpu);
+		}
+	}
+</code></pre>
+<p>Finally, <code>kvm_x86_ops-&gt;set_irq(vcpu)</code> is called, and this triggers the <code>vmx_inject_irq</code> callback function. In this process, it inserts the interrupt by setting <code>VMCS</code> (<code>Virtual Machine Control Structure</code>) with <code>VMX_ENTRY_INTR_INFO_FIELD</code>. While not elaborated on here, explaining <code>VMCS</code> would require delving into hypervisor implementation details, which is beyond the scope of this discussion. It may be added as supplementary information in the documentation in the future.</p>
+<p>In summary, this is the flow of interrupt processing using the PIC as an example.</p>
+<h4 id="toyvmm-serial-console"><a class="header" href="#toyvmm-serial-console">ToyVMM serial console</a></h4>
+<p>Now, at this point, let's temporarily set aside the exploration of interrupts and return to discussing the implementation of ToyVMM. Considering the previous discussions, let's organize what processes are being executed within ToyVMM and what happens behind the scenes.</p>
+<p>In ToyVMM, before performing <code>register_irqfd</code> as mentioned earlier, a function called <code>setup_irqchip</code> is actually executed. This function acts as a thin wrapper and internally makes calls to <code>create_irq_chip</code> and <code>create_pit2</code>. </p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[cfg(target_arch = &quot;x86_64&quot;)]
+pub fn setup_irqchip(&amp;self) -&gt; Result&lt;()&gt; {
+    self.fd.create_irq_chip().map_err(Error::VmSetup)?;
+    let pit_config = kvm_pit_config {
+        flags: KVM_PIT_SPEAKER_DUMMY,
+        ..Default::default()
+    };
+    self.fd.create_pit2(pit_config).map_err(Error::VmSetup)
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>What's important here is the <code>create_irq_chip</code> function. Internally, it calls the <code>KVM_CREATE_IRQCHIP</code> API, as mentioned earlier, to initialize the interrupt controller and IRQ routing. Following this setup, <code>register_irqfd(&amp;com_evt_1_3, 4)</code> is executed on the configured Guest VM, which, as explained earlier, calls functions like <code>kvm_irqfd_assign</code> to set up interrupt handlers. This completes the setup of interrupt-related configurations using the KVM API.</p>
+<p>Now, let's revisit the interrupts coming from <code>com_evt_1_3</code>. As previously discussed, one end of the interrupt is passed to KVM along with <code>GSI=4</code> through <code>register_irqfd</code>. Consequently, any <code>write</code> issued from the other end is treated as an interrupt to the Guest VM as if it were sent to the COM1 port. On the other hand, the other end of <code>com_evt_1_3</code> is passed to the Serial Device, making writes to the eventfd on the Serial Device side (occurring after processing through <code>Serial::write</code> or through the invocation of <code>Serial::enqueue_raw_byte</code>) the actual interrupt triggers. In essence, this setup enables the Guest VM and the software-implemented Serial Device to interact in a manner similar to regular server and Serial Device communication.</p>
+<p>Furthermore, to represent a Serial Console, we've configured <code>stdout</code> as the destination for writes corresponding to the Serial Device's output in this case. Therefore, when handling <code>KVM_EXIT_IO_OUT</code> and writing to THR, the data is passed to <code>stdout</code>, resulting in console messages being output to standard output. This effectively realizes the desired Serial Console functionality.</p>
+<h4 id="controlling-the-guest-vm-via-standard-input"><a class="header" href="#controlling-the-guest-vm-via-standard-input">Controlling the Guest VM via Standard Input</a></h4>
+<p>Finally, to manipulate the Guest VM using standard input, we want to reflect the contents of standard input into the Guest VM. The <a href="https://docs.rs/vm-superio/0.1.1/vm_superio/serial/struct.Serial.html"><code>Serial</code></a> struct provided by <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a> offers a helper function called <a href="https://docs.rs/vm-superio/0.1.1/vm_superio/serial/struct.Serial.html#method.enqueue_raw_bytes"><code>enqueue_raw_bytes</code></a>. This helper function allows us to send data to the Guest VM without needing to handle low-level register operations or interrupts explicitly, as the function handles these operations internally.</p>
+<p>To achieve this, we need to read input from the program and pass it directly to this method. We can set up standard input in raw mode, and the main thread can poll it while waiting for input. When input is received, we can use <code>enqueue_raw_bytes</code> to send it to the Guest VM. Since each vCPU of the Guest VM is executed in a separate thread, polling standard input in the main thread won't affect the processing of the Guest VM.</p>
+<p>Here is a basic implementation:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let stdin_handle = io::stdin();
+let stdin_lock = stdin_handle.lock();
+stdin_lock
+    .set_raw_mode()
+    .expect(&quot;failed to set terminal raw mode&quot;);
+let ctx: PollContext&lt;Token&gt; = PollContext::new().unwrap();
+ctx.add(&amp;exit_evt, Token::Exit).unwrap();
+ctx.add(&amp;stdin_lock, Token::Stdin).unwrap();
+'poll: loop {
+    let pollevents: PollEvents&lt;Token&gt; = ctx.wait().unwrap();
+    let tokens: Vec&lt;Token&gt; = pollevents.iter_readable().map(|e| e.token()).collect();
+    for &amp;token in tokens.iter() {
+        match token {
+            Token::Exit =&gt; {
+                println!(&quot;vcpu requested shutdown&quot;);
+                break 'poll;
+            }
+            Token::Stdin =&gt; {
+                let mut out = [0u8; 64];
+                tx.send(true).unwrap();
+                match stdin_lock.read_raw(&amp;mut out[..]) {
+                    Ok(0) =&gt; {
+                        println!(&quot;eof!&quot;);
+                    }
+                    Ok(count) =&gt; {
+                        stdio_serial
+                            .lock()
+                            .unwrap()
+                            .serial
+                            .enqueue_raw_bytes(&amp;out[..count])
+                            .expect(&quot;failed to enqueue bytes&quot;);
+                    }
+                    Err(e) =&gt; {
+                        println!(&quot;error while reading stdin: {:?}&quot;, e);
+                    }
+                }
+            }
+            _ =&gt; {}
+        }
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>This is a straightforward implementation, but it achieves the desired functionality.</p>
+<h2 id="check-uart-request-when-booting-the-linux-kernel"><a class="header" href="#check-uart-request-when-booting-the-linux-kernel">Check UART Request When Booting the Linux Kernel</a></h2>
+<p>In the previous sections, we discussed the software implementation of the Serial UART and how it's used internally within ToyVMM. While it works effectively, it's important to examine the UART communication during the Linux Kernel boot process.</p>
+<p>Fortunately, due to the VMM's architecture, we need to handle <code>KVM_EXIT_IO</code>, which allows us to intercept all requests sent to the serial port by injecting debug code into this handling process.</p>
+<p>I won't go into detail about the code inserted for debugging purposes here, as it's quite straightforward to insert debug code at the appropriate locations. Instead, I'll provide annotations in three specific formats to make it clear and understandable when looking at requests made to the <code>0x3f8 (COM1)</code> register during OS startup.</p>
+<pre><code class="language-bash">[Format 1 - Read]
+r($register) = $data
+  - Description
+
+- r           = Read operation
+- $register   = The register corresponding to the offset calculated using the device's address (0x3f8)
+- $data       = Data read from $register
+- Description = Explanation
+
+[Format 2 - Write]
+w($register = $data)
+  - Description
+
+- w           = Write operation
+- $register   = The register corresponding to the offset calculated using the device's address (0x3f8)
+- $data       = Data to be written to $register
+- Description = Explanation
+
+[Format 3 - Write (character)]
+w(THR = $data = 0xYY) -&gt; 'CHAR'
+
+- w(THR ...)  = Write operation to THR
+- $data       = Binary data to be written to $register
+- 0xYY        = $data converted to hexadecimal
+- 'CHAR'      = 0xYY converted to a character based on the ASCII code table
+</code></pre>
+<p>Now, the following is a somewhat lengthy representation of requests made to the <code>0x3f8 (COM1)</code> register during OS startup, formatted according to the above annotations:</p>
+<pre><code class="language-bash"># Initial setup, configuring baud rate, etc.
+w(IER = 0)
+w(LCR = 10010011)
+  - DLAB         = 1   (DLAB: DLL and DLM accessible)
+  - Break signal = 0   (Break signal disabled)
+  - Parity       = 010 (No parity)
+  - Stop bits    = 0   (1 stop bit)
+  - Data bits    = 11  (8 data bits)
+w(DLL = 00001100)
+w(DLM = 0)
+  - DLL = 0x0C, DLM = 0x00 (Speed = 9600 bps)
+w(LCR = 00010011)
+  - DLAB         = 0   (DLAB: RBR, THR, and IER accessible)
+  - Break signal = 0   (Break signal disabled)
+  - Parity       = 010 (No parity)
+  - Stop bits    = 0   (1 stop bit)
+  - Data bits    = 11  (8 data bits)
+w(FCR = 0)
+w(MCR = 00000001)
+  - Reserved            = 00
+  - Autoflow control    = 0
+  - Loopback mode       = 0
+  - Auxiliary output 2  = 0
+  - Auxiliary output 1  = 0
+  - Request to send     = 0
+  - Data terminal ready = 1
+r(IER) = 0
+w(IER = 0)
+
+# From here, the actual console output is being received through the serial port,
+# and write operations (in this case, writing to stdout) are happening.
+
+# Checking the content of r(LSR) to determine whether to write the next character
+r(LSR) = 01100000
+  - Errornous data in FIFO         = 0
+  - THR is empty, and line is idle = 1
+  - THR is empty                   = 1
+  - Break signal received          = 0
+  - Framing error                  = 0
+  - Parity error                   = 0
+  - Overrun error                  = 0
+  - Data available                 = 0
+    - Bits 5 and 6 are related to character transmission and used by UART
+    - If bits 5 and 6 are set, it means UART is ready to accept a new character
+      - Bit 6 = '1' means that all characters have been transmitted
+      - Bit 5 = '1' means that UART is capable of receiving more characters
+
+# Since the next character write is accepted here, we write the character we want to output.
+w(THR = 01011011 = 0x5b) -&gt; '['
+
+# Following this, the same pattern repeats:
+r(LSR) = 01100000
+w(THR = 00100000 = 0x20) -&gt; ' '
+# The above operation repeats 3 more times.
+# ...
+
+r(LSR) = 01100000
+w(THR  = 00110000 = 0x30) -&gt; '0'
+r(LSR) = 01100000
+w(THR  = 00101110 = 0x2e) -&gt; '.'
+r(LSR) = 01100000
+w(THR  = 00110000 = 0x30) -&gt; '0'
+# The above operation repeats 5 more times
+
+r(LSR) = 01100000
+w(THR  = 01011101 = 0x5d) -&gt; ']'
+r(LSR) = 01100000
+w(THR  = 00100000 = 0x20) -&gt; ' '
+r(LSR) = 01100000
+w(THR  = 01001100 = 0x4c) -&gt; 'L'
+r(LSR) = 01100000
+w(THR  = 01101001 = 0x69) -&gt; 'i'
+r(LSR) = 01100000
+w(THR  = 01101110 = 0x6e) -&gt; 'n'
+r(LSR) = 01100000
+w(THR  = 01110101 = 0x75) -&gt; 'u'
+r(LSR) = 01100000
+w(THR  = 01111000 = 0x78) -&gt; 'x'
+r(LSR) = 01100000
+w(THR  = 00100000 = 0x20) -&gt; ' '
+r(LSR) = 01100000
+w(THR  = 01110110 = 0x76) -&gt; 'v'
+r(LSR) = 01100000
+w(THR  = 01100101 = 0x65) -&gt; 'e'
+r(LSR) = 01100000
+w(THR  = 01110010 = 0x72) -&gt; 'r'
+r(LSR) = 01100000
+w(THR  = 01110011 = 0x73) -&gt; 's'
+r(LSR) = 01100000
+w(THR  = 01101001 = 0x69) -&gt; 'i'
+r(LSR) = 01100000
+w(THR  = 01101111 = 0x6f) -&gt; 'o'
+r(LSR) = 01100000
+w(THR  = 01101110 = 0x6e) -&gt; 'n'
+r(LSR) = 01100000
+w(THR  = 00100000 = 0x20) -&gt; ' '
+r(LSR) = 01100000
+w(THR  = 00110100 = 0x34) -&gt; '4'
+r(LSR) = 01100000
+w(THR  = 00101110 = 0x2e)-&gt; '.'
+r(LSR) = 01100000
+w(THR  = 00110001 = 0x31) -&gt; '1'
+r(LSR) = 01100000
+w(THR  = 00110100 = 0x34) -&gt; '4'
+r(LSR) = 01100000
+w(THR  = 00101110 = 0x2e) -&gt; '.'
+r(LSR) = 01100000
+w(THR  = 00110001 = 0x31) -&gt; '1'
+r(LSR) = 01100000
+w(THR  = 00110111 = 0x37) -&gt; '7'
+r(LSR) = 01100000
+w(THR  = 00110100 = 0x34) -&gt; '4'
+r(LSR) = 01100000
+w(THR  = 00100000 = 0x20) -&gt; ' '
+r(LSR) = 01100000
+w(THR  = 00101000 = 0x28) -&gt; '('
+r(LSR) = 01100000
+w(THR  = 01000000 = 0x40) -&gt; '@'
+w(LSR) = 01100000
+r(THR  = 00110101 = 0x35) -&gt; '5'
+r(LSR) = 01100000
+w(THR  = 00110111 = 0x37) -&gt; '7'
+r(LSR) = 01100000
+w(THR  = 01100101 = 0x65) -&gt; 'e'
+r(LSR) = 01100000
+w(THR  = 01100100 = 0x64) -&gt; 'd'
+r(LSR) = 01100000
+w(THR  = 01100101 = 0x65) -&gt; 'e'
+r(LSR) = 01100000
+w(THR  = 01100010 = 0x62) -&gt; 'b'
+r(LSR) = 01100000
+w(THR  = 01100010 = 0x62) -&gt; 'b'
+r(LSR) = 01100000
+w(THR  = 00111001 = 0x39) -&gt; '9'
+r(LSR) = 01100000
+w(THR  = 00111001 = 0x39) -&gt; '9'
+r(LSR) = 01100000
+w(THR  = 01100100 = 0x64) -&gt; 'd'
+r(LSR) = 01100000
+w(THR  = 01100010 = 0x62) -&gt; 'b'
+r(LSR) = 01100000
+w(THR  = 00110111 = 0x37) -&gt; '7'
+r(LSR) = 01100000
+w(THR  = 00101001 = 0x29) -&gt; ')'
+
+# Concatenating the output, we get the following line:
+[    0.000000] Linux version 4.14.174 (@57edebb99db7)
+
+# This matches the content of the first line output during OS boot.
+</code></pre>
+<p>Of course, Linux Kernel startup UART requests continue beyond this, and more complex operations take place. However, I won't delve further into these requests here. If you are interested, I encourage you to explore them in detail.</p>
+<h2 id="reference"><a class="header" href="#reference">Reference</a></h2>
+<ul>
+<li><a href="https://www.lammertbies.nl/comm/info/serial-uart">Serial UART information</a></li>
+<li><a href="https://en.wikibooks.org/wiki/Serial_Programming/8250_UART_Programming">Wikibooks : Serial Programming / 8250 UART Programming</a></li>
+<li><a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Interrupt_request_(PC_architecture)">Interrupt request(PC architecture)</a></li>
+<li><a href="https://www.kernel.org/doc/html/v4.15/admin-guide/serial-console.html">Linux Serial Console</a></li>
+<li><a href="https://xzpeter.org/htmls/2017_12_07_kvm_irqfd/kvm_irqfd_implementation.html">KVM IRQFD Implementation</a></li>
+<li><a href="https://rkx1209.hatenablog.com/entry/2016_01_01_101456">KVMのなかみ（KVM internals）</a></li>
+<li><a href="https://syuu1228.github.io/howto_implement_hypervisor/part2.html">ハイパーバイザーの作り方~ちゃんと理解する仮想化技術~ 第2回 intel VT-xの概要とメモリ仮想化</a></li>
+<li><a href="https://habr.com/en/post/446312/">External Interrupts in the x86 system. Part1. Interrupt controller evolution</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="02-4_setup_registers_of_vcpu.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="02-6_toyvmm_implementation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="02-4_setup_registers_of_vcpu.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="02-6_toyvmm_implementation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>
