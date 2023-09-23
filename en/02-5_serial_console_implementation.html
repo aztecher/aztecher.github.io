@@ -153,7 +153,7 @@
 <p>To output console messages to the serial port, it is necessary to set <code>console=ttyS0</code> as a kernel boot parameter. In the current implementation of ToyVMM, this value is provided as the default.</p>
 <p>The challenge lies on the side that receives this, the serial terminal. Since the I/O port address corresponding to the serial port is fixed, ToyVMM's layer will receive instructions like <code>KVM_EXIT_IO</code> for the nearby address. In other words, it needs to properly handle output information to the serial console issued from the Guest OS and other necessary setup requests. This can be achieved by emulating the UART device. Furthermore, by emulating the device, if we can output console output to the standard output and reflect our standard input to the Guest VM, when starting the VM from ToyVMM, we can confirm the boot information and perform operations on the Guest from our local terminal.</p>
 <p>In summary, we need to create something like the conceptual diagram below:</p>
-<img src="../02_figs/overview_serial_device.svg" width="100%">
+<img src="./02_figs/overview_serial_device.svg" width="100%">
 <p>We will explain this in detail in the following sections.</p>
 <h2 id="serial-uart"><a class="header" href="#serial-uart">Serial UART</a></h2>
 <p>For detailed information about Serial UART, you can refer to the following resources by Lammet Bies and Wikibooks, which provide rich information:</p>
@@ -162,7 +162,7 @@
 <li><a href="https://en.wikibooks.org/wiki/Serial_Programming/8250_UART_Programming">Serial Programming / 8250 UART Programming (Wikibooks)</a></li>
 </ul>
 <p>The following figures are based on Lammet's document, with a brief explanation of each bit of each register. Although this diagram was created by me personally in writing this document, it is attached in the hope that it will help readers understand the meaning of each register and bit. However, the meaning of each register and bit is not explained in this document, so please refer to the above document for confirmation:</p>
-<img src="../02_figs/serial_uart_registers.svg" width="100%">
+<img src="./02_figs/serial_uart_registers.svg" width="100%">
 <p>Basically, UART operations are performed by manipulating the registers and bits shown above. In our case, we need to emulate this in software, and we plan to do this using <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a>. In the following sections, we'll briefly compare the implementation of <a href="https://github.com/rust-vmm/vm-superio">rust-vmm/vm-superio</a> with the above specifications.</p>
 <h2 id="software-implementation-of-serial-device-using-rust-vmmvm-superio"><a class="header" href="#software-implementation-of-serial-device-using-rust-vmmvm-superio">Software Implementation of Serial Device using rust-vmm/vm-superio</a></h2>
 <h3 id="initial-value-settingsrw-implementation"><a class="header" href="#initial-value-settingsrw-implementation">Initial Value Settings/RW Implementation</a></h3>
@@ -416,7 +416,7 @@ static const struct kvm_irq_routing_entry default_routing[] = {
 <p>Now, let's return to the discussion of <code>irqfd</code>. Although not mentioned earlier, the <code>kvm_irqfd_assign</code> function includes the <code>init_waitqueue_func_entry(&amp;irqfd-&gt;wait, irqfd_wakeup)</code> process, registering <code>irqfd_wakeup</code> with <code>&amp;irqfd-&gt;wait-&gt;func</code>. This function is called when an interrupt occurs, and it invokes <code>schedule_work(&amp;irqfd-&gt;inject)</code>.</p>
 <p>The <code>inject</code> field is also initialized within the <code>kvm_irqfd_assign</code> function, resulting in a call to the <code>irqfd_inject</code> function. Inside <code>irqfd_inject</code>, the <code>kvm_set_irq</code> function is called. </p>
 <p>The <code>kvm_set_irq</code> function lists entries with the incoming IRQ number and calls their <code>set</code> callbacks. This means that functions like <code>kvm_set_pic_irq</code> and <code>kvm_set_ioapic_irq</code>, as described earlier, will be called based on the routing information.</p>
-<img src="../02_figs/kvm_irq_gsi_routing.svg" width="100%">
+<img src="./02_figs/kvm_irq_gsi_routing.svg" width="100%">
 <p>The following explanation will go into a little more depth on interrupt processing, but since they are not necessary for understanding ToyVMM, you may skip to <a href="#toyvmm-serial-console">ToyVMM serial console</a>.</p>
 <p>Let's take a closer look at the <code>kvm_set_pic_irq</code> handler, which is responsible for handling interrupts. While this discussion slightly deviates from the main topic, it's a good opportunity to explore it more thoroughly.
 <code>kvm_set_pic_irq</code> simply utilizes the <code>kvm_pic_set_irq</code> function, passing the relevant parameters.</p>

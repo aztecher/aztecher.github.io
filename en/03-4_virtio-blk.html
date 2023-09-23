@@ -186,7 +186,7 @@ In comparison to the <code>Net</code> device, you can see that the Tap device ha
 <li>The third <code>Descriptor</code> entry points to the address where the <code>status</code> will be written by Host.</li>
 </ul>
 <div align="center">
-<img src="../03_figs/virtio-blk_virtqueue.svg", width="50%">
+<img src="./03_figs/virtio-blk_virtqueue.svg", width="50%">
 </div>
 <p>The <code>type</code> field indicates the type of I/O (e.g., <code>read</code>, <code>write</code>, or other I/O requests). By examining this value, the host can determine how to behave differently.</p>
 <p>In the case of a <code>read</code>, the second <code>Descriptor</code> entry points to the area where the host should store the data it reads from the Disk. The host can determine the sector to read from based on the <code>sector</code> value and read the necessary amount of data (<code>desc.len</code> of the second <code>Descriptor</code>).</p>
@@ -213,11 +213,11 @@ The <code>signal_used_queue</code> function simply sends an interrupt to the gue
 </ol>
 <p>The following diagrams illustrate the process when the guest-originated I/O request is a Read:</p>
 <div align="center">
-<img src="../03_figs/blk-device_read.svg", width="100%">
+<img src="./03_figs/blk-device_read.svg", width="100%">
 </div>
 <p>And here's the process when the guest-originated I/O request is a Write:</p>
 <div align="center">
-<img src="../03_figs/blk-device_write.svg", width="100%">
+<img src="./03_figs/blk-device_write.svg", width="100%">
 </div>
 <h3 id="verification-of-virtio-blk-operation"><a class="header" href="#verification-of-virtio-blk-operation">Verification of virtio-blk Operation</a></h3>
 <p>Now, let's perform a practical verification to demonstrate the functionality. Instead of using <code>initrd.img</code>, we will use an Ubuntu rootfs image similar to Firecracker, allowing us to boot the Ubuntu OS directly. With the implementation of the <code>virtio-blk</code> BlockDevice, we can recognize the Ubuntu rootfs image as <code>/dev/vda</code> in the VM. To boot from this Ubuntu image, we need to specify <code>root=/dev/vda</code> in the VM's kernel cmdline.</p>

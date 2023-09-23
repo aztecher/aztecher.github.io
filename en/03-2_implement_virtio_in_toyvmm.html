@@ -155,13 +155,13 @@
 </ol>
 <p>As mentioned in the <a href="./03-1_virtio.html">previous section</a>, ToyVMM initially utilizes MMIO as the transport method for Virtio. Before diving into the detailed explanation, let's start by illustrating an overview of the Virtio implementation in this context.</p>
 <div align="center">
-<img src="../03_figs/virtio_implementation.svg" width="100%">
+<img src="./03_figs/virtio_implementation.svg" width="100%">
 </div>
 <p>By referring to this diagram as needed, we can better understand the explanations and code that follow.</p>
 <h3 id="implementation-approach"><a class="header" href="#implementation-approach">Implementation Approach</a></h3>
 <p>In the implementation, the VirtioDevice itself is implemented as an abstract concept (<code>Trait</code>), and concrete devices like <code>Net</code> and <code>Block</code> are created to fulfill this trait. Similarly, since there are options for transport methods like <code>PCI</code> and <code>MMIO</code> (with MMIO being used here), we treat transport as an abstract concept and implement it according to the specific implementation, which in this case is <code>MMIO</code>.</p>
 <div align="center">
-<img src="../03_figs/virtio_related_structs.svg" width="50%">
+<img src="./03_figs/virtio_related_structs.svg" width="50%">
 </div>
 <p>Finally, we need to implement Virtqueues. While the number and usage of Virtqueues can vary depending on the implemented Virtio device, the structure of the Virtqueue remains consistent. We'll provide more details on this later.</p>
 <h3 id="virtqueue-implementation"><a class="header" href="#virtqueue-implementation">Virtqueue Implementation</a></h3>
@@ -173,7 +173,7 @@
 <li><code>Used Ring</code> : Structure that manages <code>Descriptor</code> that stores information that the Host wants to notify to the Guest.</li>
 </ul>
 <div align="center">
-<img src="../03_figs/virtqueue.svg" width="80%">
+<img src="./03_figs/virtqueue.svg" width="80%">
 </div>
 <p>We'll explore each of these elements in detail while understanding how they cooperate. First, the <code>Descriptor Table</code> contains data structures like <code>Descriptor</code> (as indicated in the diagram) gathered together.</p>
 <blockquote>
@@ -261,7 +261,7 @@ struct virtq_used_elem {
 </ul>
 <p>The following diagram summarizes what has been explained so far.</p>
 <div align="center">
-<img src="../03_figs/virtqueue_desc_avail_used_flow.svg" width=100%>
+<img src="./03_figs/virtqueue_desc_avail_used_flow.svg" width=100%>
 </div>
 <p>This concludes the necessary knowledge for implementing Virtqueue.</p>
 <h1 id="virtqueue-implementation-on-toyvmm"><a class="header" href="#virtqueue-implementation-on-toyvmm">Virtqueue implementation on ToyVMM</a></h1>
@@ -418,11 +418,11 @@ pub fn add_used(&amp;mut self, mem: &amp;GuestMemoryMmap, desc_index: u16, len: 
 <p>In essence, notifications between the guest and host are achieved using the mechanisms <code>ioeventfd</code> and <code>irqfd</code>. Both of these mechanisms are provided through the <code>KVM API</code>.</p>
 <p>First, for notifications from the guest to the host, we use <code>ioeventfd</code>. <code>ioeventfd</code> transforms memory writes caused by PIO/MMIO operations in the guest VM into eventfd notifications. The <code>KVM_IOEVENTFD</code> is used as part of the KVM API, where you provide the eventfd for notifications and the address for MMIO. Writes to this MMIO address are converted into notifications to the specified eventfd. As a result, software on the host side (in this case, ToyVMM) can receive notifications from the guest via eventfd. This mechanism enhances event notification efficiency, making it a more lightweight implementation compared to traditional polling or interrupt handler-based methods.</p>
 <div align="center">
-<img src="../03_figs/ioeventfd.svg" width="50%">
+<img src="./03_figs/ioeventfd.svg" width="50%">
 </div>
 <p>Next, for notifications from the host to the guest, we use the <code>irqfd</code> mechanism. Although we've used <code>irqfd</code> in previous implementations, we employ <code>KVM_IRQFD</code> here. By passing the eventfd to be used for notifications and the IRQ number corresponding to the desired guest IRQ when using <code>KVM_IRQFD</code>, writes to the eventfd on the ToyVMM side are converted into hardware interrupts for the specified guest IRQ.</p>
 <div align="center">
-<img src="../03_figs/ioeventfd.svg" width="50%">
+<img src="./03_figs/ioeventfd.svg" width="50%">
 </div>
 <p>Using the notification features based on the KVM API mentioned above, we achieve communication between the guest and host. Specific usage details will be discussed in the following section, &quot;Implementation of MMIO Transport.&quot;</p>
 <h3 id="implementation-of-mmio-transport"><a class="header" href="#implementation-of-mmio-transport">Implementation of MMIO Transport</a></h3>
@@ -443,7 +443,7 @@ virtio_mmio.device=4K@0xd0000000:5
 Additionally, since IRQ information is provided to the guest via the command line, the guest sets up to launch the corresponding device handler when an interrupt occurs at the specified IRQ. Conversely, when you want to trigger an interrupt in the Virtio device presented to the Guest VM (when you want to delegate processing to the Guest VM), you can do so by writing to this IRQ. Essentially, by creating Eventfd and registering it with IRQ using <code>KVM_IRQFD</code>, you can trigger interrupts by writing to this Eventfd from the ToyVMM side.</p>
 <p>The figure below summarizes the above discussion, and ToyVMM implements this scheme:</p>
 <div align="center">
-<img src="../03_figs/mmio_transport.svg" width="80%">
+<img src="./03_figs/mmio_transport.svg" width="80%">
 </div>
 <h3 id="mmio-transport---implementation-corresponding-to-mmio-device-register-layout"><a class="header" href="#mmio-transport---implementation-corresponding-to-mmio-device-register-layout">MMIO Transport - Implementation Corresponding to MMIO Device Register Layout</a></h3>
 <p>The implementation of MMIO Transport can be found in the <code>mmio.rs</code> file. The <code>MmioTransport</code> structure, like the <code>I/O Bus</code> we discussed in the <a href="./02-5_serial_console_implementation.html">Serial Console implementation</a>, implements the <code>BusDevice</code> trait and is registered within the <code>Bus</code> structure. It allows handling MMIO I/O in response to <code>KVM_EXIT_MMIO</code>, similar to how traditional <code>VcpuExit::IoIn</code> and <code>VcpuExit::IoOut</code> are processed.</p>

@@ -162,7 +162,7 @@
 <li>Virtio driver: The guest-side driver for Virtio-based devices.</li>
 <li>Virtio device: The host-side emulation of devices.</li>
 </ul>
-<p><img src="../03_figs/virtio-overview.svg" alt="Virtio Overview" /></p>
+<p><img src="./03_figs/virtio-overview.svg" alt="Virtio Overview" /></p>
 <p>As depicted in the diagram, I/O requests initiated by the guest pass through Virtqueue to the host and responses are also mediated through Virtqueue back to the guest. Detailed behaviors and implementations will be discussed in the next section.</p>
 <p>Additionally, when exposing Virtio devices to guests, it's possible to choose specific transport methods. The two common methods are &quot;Virtio Over PCI Bus&quot; which uses PCI (Peripheral Component Interconnect), and &quot;Virtio Over MMIO Bus&quot; which uses MMIO (Memory Mapped I/O). Guests have corresponding drivers such as <code>virtio-pci</code> and <code>virtio-mmio</code> for specific transports, along with Virtio drivers (<code>virtio-net</code>, <code>virtio-blk</code>) for particular device types.</p>
 <p>In ToyVMM, we'll initially adopt <code>virtio-mmio</code> as the transport and proceed to implement Network devices for <code>virtio-net</code> and Block devices for <code>virtio-blk</code>.</p>
