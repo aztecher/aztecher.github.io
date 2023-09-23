@@ -1,0 +1,377 @@
+<!DOCTYPE HTML>
+<html lang="ja" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>02-1. Overview of Booting Linux - toyvmm book (ja)</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html" class="active">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">toyvmm book (ja)</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/aztecher/toyvmm" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="overview-of-booting-linux"><a class="header" href="#overview-of-booting-linux">Overview of Booting Linux</a></h1>
+<h3 id="一般的なブートの仕組み"><a class="header" href="#一般的なブートの仕組み">一般的なブートの仕組み</a></h3>
+<p>Linuxでは大まかに以下のようにプログラムが順番に動作していくことでOSが起動していく</p>
+<ol>
+<li>BIOS</li>
+<li>ブートローダ (GRUB)</li>
+<li>Linuxカーネル（vmlinuz）</li>
+<li>init</li>
+</ol>
+<p>BIOSはマザーボード上のROMにプログラムが格納されている。<br />
+我々が電源を投入すると、CPUはこの領域がマップされているアドレスから処理を実行するようになっている。<br />
+BIOSはハードウェアの検出、初期化を実行し、その後OSのブートドライブ（HHD/SSD、USBフラッシュメモリなど）を探索する。<br />
+この時、ブートドライブはMBR、もしくはGPTの形式でフォーマットされている必要があり、これらのフォーマットとBIOSの関係はそれぞれ以下のように対応する</p>
+<table><thead><tr><th>BIOS \ DISK Format</th><th>MBR</th><th>GPT</th></tr></thead><tbody>
+<tr><td>Legacy BIOS</td><td>◯</td><td>-</td></tr>
+<tr><td>UEFI</td><td>◯ *</td><td>◯</td></tr>
+</tbody></table>
+<p>* UEFIはLegacy Boot Modeのサポートがあるため、MBRをサポートしている</p>
+<p>以降ではMBRを利用する場合のOS探索について説明する<br />
+詳しい説明に入る前に、MBRの構造について簡単に整理しておく。
+以降で説明するMBRの構造はHDD／SSDやUSBフラッシュメモリなどの場合を想定し記載しており、後述するPartition Entryの存在を暗黙に仮定しているので注意されたい。
+なお、本資料では<a href="https://en.wikipedia.org/wiki/Master_boot_record">Wikipedia</a>で記載されている名称を引用しているので注意されたい。</p>
+<p>MBRはブートドライブの先頭セクタに512byte書き込まれており、大きく分けて3つの領域が存在している。</p>
+<ol>
+<li>Bootstrap code are (446 byte)</li>
+<li>Partition Entry (64 byte = 16 byte * 4)</li>
+<li>Boot Signature (2 byte)</li>
+</ol>
+<p>MBRについてここでは詳細に説明はしないが、Boot code areaにはOSをブートする機械語のプログラム（Boot Loader）が、Partition Entryにはそのディスクの論理パーティション情報が格納されている。<br />
+（余談だが、Boot code areaは446byteしかないため、Boot Loaderを直接実装するのではなく、Boot Loaderは別の場所に格納しておき、そのブートローダをメモリに読み込むために最小限のプログラムを配置することもあるようだ）<br />
+ここで重要なのは3つ目の「Boot Signature」であり、ここに格納されている2byteの値は、当該ドライブがブートドライブかどうかを担保するために利用される。<br />
+具体的には、BIOSがOSのブートドライブを探索する時、先頭1セクタ（512byte）を読み込み、最後の2byte（Boot Signature）がブートドライブであることを示すシグネチャ（<code>0x55 0xaa</code>）であることを確認する。
+このシグネチャが亜確認できた場合、当該ディスクをブートディスクと判定し、先頭1セクタ(512byte)をメインメモリの0x7c00から0x7fffに読み込んで、0x7c00からプログラムを実行していく。</p>
+<p>さて、これまでの議論の簡単な裏付けとして、手元のマシンでBoot Signatureを確認してみる。<br />
+仮想マシンなので、ブートディスクは<code>vda</code>と表示されている。通常のマシンなら<code>sda</code>などだろう。
+この<code>vda</code>から先頭1セクタ分の内容をファイルに書き出し、<code>hexdump</code>で510byteオフセットした位置から2byte確認してみると、確かに<code>0x55</code> <code>0xaa</code>の値が確認できる。</p>
+<pre><code class="language-bash">$ lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sr0     11:0    1    2M  0 rom
+vda    252:0    0  300G  0 disk
+├─vda1 252:1    0    1M  0 part
+└─vda2 252:2    0  300G  0 part /
+
+$ sudo dd if=/dev/vda of=mbr bs=512 count=1
+1+0 records in
+1+0 records out
+512 bytes (512 B) copied, 0.000214802 s, 2.4 MB/s
+
+$ hexdump -s 510 -C mbr
+000001fe  55 aa                                             |U.|
+00000200
+</code></pre>
+<p>話を戻すと、BIOSによってMBRの情報を元にブートディスク上に格納されていたブートローダがメモリ上に展開され実行されていくことになる。ブートローダはカーネルとinitramfsをDISKからメモリに読み込み、カーネル起動する役目を持ったプログラムであり、近年では一般的にGRUBが利用されることが多い。ブートローダの詳細の処理内容についてもここでは省略とする。</p>
+<p>重要な点としては、ブートローダはDISK上に格納されたカーネルなどを読み込む必要があるという点である。
+これを達成する素朴な方法は我々がDISK上のカーネルファイルの位置をブートローダに対して教えることであろう。
+しかしgrub.cfgの内容を見てみると、カーネルやinitrdの位置をファイルパスの形でしか指定していないことを確認できるだろう。
+これはブートローダがファイルシステムを解釈する能力を有している必要があることを意味する。
+実際に、Boot Loaderいくつかのファイルシステムを解釈でき、ファイルシステム上のディレクトリパス情報からカーネルを探し出すことができる。
+ただし、当然ながらBoot Loaderは特定のファイルシステムのみのサポートに留まるため、それ以外のフォーマットのものを解釈することはできないので注意されたい。
+ブートローダによってgrub.cfgで指定されたカーネルとRAMディスクをメモリ上にロードし、カーネルの先頭アドレスにジャンプすることで、処理をカーネルへと引き渡し自身の処理を終える</p>
+<p>カーネルの処理の話に入る前に、カーネルファイルについて少し整理しておく。
+カーネルファイルは一般に<code>vmlinuz*</code>という名前がついているファイルである
+我々にとって馴染みのあるカーネルファイルは<code>/boot/vmlinuz-*.img</code>と思われるが、このファイルは<code>bzImage</code>形式のファイルである。これは<code>file</code>コマンドで簡単に確認することができる。<br />
+この<code>bzImage</code>はカーネル本体を含む圧縮バイナリファイルの他に、低レベルの初期化を行うためのファイルなどいくつかのファイルが含まれる形式になっている。
+この<code>bzImage</code>を適切に解凍することでカーネルの実行バイナリを手に入れることもできる。
+本資料では<code>bzImage</code>形式のカーネルを<code>vmlinuz</code>、実行バイナリ形式のカーネルを<code>vmlinux.bin</code>と表記する。</p>
+<p>さてブートローダから<code>vmlinuz</code>に処理が引き渡されると<code>vmlinuz</code>は低レベルの初期化処理を実施後、カーネル本体を解凍、メモリにロードし、カーネルのエントリールーチンに処理を移す。
+カーネルは全ての初期化処理を終えると、<code>tmpfs</code>ファイルシステムを作成し、ブートローダがRAM上に配置した<code>initramfs</code>をそこに展開し、ディレクトリルートにある<code>init</code>スクリプトを起動する。
+この<code>init</code>スクリプトはDISK上に格納されている本命のファイルシステムをマウントするために必要な準備を整え、本命のファイルシステムやその他に重要なファイルシステムをマウントする。この時<code>initramfs</code>にはいくつかのデバイスドライバなども含まれているため、多様なフォーマットのルートファイルシステムをマウントすることが可能である。
+さらにこれが完了すると、ルートを本命のルートファイルシステムに切り替え、そこに格納されている<code>/sbin/init</code> バイナリを起動する。</p>
+<p><code>/sbin/init</code>はシステムで最初に起動されるプロセス（PID=1が付与されるプロセス）であり、他のプロセスを起動させる役割を持っている全てのプロセスの親となるものである。
+initにはさまざまな実装（<code>SysVinit</code>, <code>Upstart</code>）があるが、最近のCentOSやUbuntuなどで利用されているのは<code>Systemd</code>である。
+initの最終的な責務は、システムの更なる準備とブートプロセスが終わった時点で必要なサービスが実行されておりユーザがログイン可能な状態まで持っていくことである。</p>
+<p>以上が、非常に大雑把ではあるが電源投入からOSが起動するまでの流れである。</p>
+<h3 id="initrdとinitramfs"><a class="header" href="#initrdとinitramfs">initrdとinitramfs</a></h3>
+<p>上記に記載したLinux起動処理の中に、メモリ上に展開するファイルシステムである<code>initramfs</code>を紹介したが、我々がよく目にするのは<code>/boot/initrd.img</code>であろうと思う。ここでは<code>initrd</code>と<code>initramfs</code>との違いについて説明する
+<code>initrd</code>は「initial RAM <strong>disk</strong>」、<code>initramfs</code>「initial RAM <strong>File System</strong>」であり両者は別物であるが、提供したい機能は同じで「本命のルートファイルシステムのマウントに必要なコマンド、ライブラリ、モジュール」を提供し、本命のルートファイルシステム上に存在する<code>/sbin/init</code>スクリプトを起動することである。<br />
+もともと本来起動したいシステムは何かしらの記憶装置に書き込まれているが、これを読み込むには適切なデバイスドライバの存在と、これをマウントするファイルシステムが存在していないといけないという問題がある。<br />
+<code>initrd</code>/<code>initramfs</code>は両方ともこの問題を解決する。</p>
+<p><code>initrd</code>と<code>initramfs</code>は上記の機能を提供するための<strong>方式</strong>が異なっており、名前の通りであるが<code>initrd</code>はブロックデバイス、<code>initramfs</code>は（<code>tmpfs</code>をもとにした）RAM filesystemの方式になっている。
+従来は<code>initrd</code>を利用していたが、Kernel 2.6以降で<code>initramfs</code>が利用できるようになっており、現在はこちらの方式を利用することの方が一般的と思われる。
+<code>initrd</code>から<code>initramfs</code>に移りわってきたのにはもちろん、<code>initrd</code>には問題があり、<code>initramfs</code>はそれの解決が測られたからである。
+<code>initrd</code>には概ね以下のような問題が存在していた</p>
+<ol>
+<li>RAM diskはRAM上に擬似的なブロックデバイスを作成し、これをあたかも二次記憶のように取り扱う仕組みであるため、通常のブロックデバイスと同様にメモリキャッシュ機構が働いてしまうために不必要にキャッシュメモリを消費する。さらにはページングのような機構が働いてしまうことで一層メモリを逼迫してしまう。</li>
+<li>RAM diskはそのデータをフォーマットし解釈するためのext2のようなファイルシステムドライバーが必要である。</li>
+<li>RAM diskのブロックデバイスは固定サイズになるため、あまりに小さいと必要なスクリプトを全て収めることができず、大きすぎると無駄にメモリを利用する</li>
+</ol>
+<p>これを解決するために考案され、現在のデフォルトになっているのが<code>initramfs</code>である。<br />
+<code>initramfs</code>はサイズを柔軟に設定できる軽量なメモリ内ファイルシステムである<code>tmpfs</code>をベースとして作られたfilesystemである。<br />
+当然これはブロックデバイスではないので、キャッシュやページングでメモリを汚すこともなく、ブロックデバイスに対するファイルシステムドライバも不要で、さらに固定長という問題もうまく解決している。</p>
+<p><code>initrd</code>/<code>initramfs</code>いずれの方式にせよ、その中に格納されているツールを利用して本命のルートファイルシステムをマウントしそちらにルートを切り替えた上で、そのファイルシステム上に存在しているスタートアップスクリプトである<code>/sbin/init</code>を起動する。</p>
+<h4 id="initramfsの中身を確認する"><a class="header" href="#initramfsの中身を確認する">initramfsの中身を確認する</a></h4>
+<p><code>initramfs</code>の内容を展開し中身を確認してみる。Ubuntu 20.04.2 LTSの<code>initrd</code>を展開してみる。<br />
+（注意: <code>initrd</code>という命名のファイルだが、このファイルはれっきとした<code>initramfs</code>である）。<br />
+<code>initramfs</code>はいくつかのファイルをCPIOの形式にしたものが連結されているため、そのまま<code>cpio</code>コマンドで解凍しても以下のように冒頭のファイル（AuthenticAMD.bin）のみしか出てこない</p>
+<pre><code class="language-bash">$ mkdir initrd-work &amp;&amp; cd initrd-work
+$ sudo cp /boot/initrd.img ./
+$ cat initrd.img| cpio -idvm
+.
+kernel
+kernel/x86
+kernel/x86/microcode
+kernel/x86/microcode/AuthenticAMD.bin
+62 blocks
+</code></pre>
+<p><code>dd</code>/<code>cpio</code>の組み合わせで全てのファイルが展開できるが、<code>unmkinitramfs</code>という便利なコマンドがあるので今回はこちらを利用する</p>
+<pre><code class="language-bash">$ mkdir extract
+$ unmkinitramfs initrd.img extract
+$ ls extract
+early  early2  main
+</code></pre>
+<p>解凍した結果、<code>early</code>, <code>early2</code>, <code>main</code>というディレクトリが作成されていることがわかる
+例えばこの<code>early</code>は先ほどCPIOで解凍した際に出てきたファイルが確認できる
+重要なのは、<code>main</code>の配下で、その中のコンテンツとしてファイルシステムルートの内容が格納されている</p>
+<pre><code class="language-bash">$ ls extract/early/kernel/x86/microcode
+AuthenticAMD.bin
+$ ls extract/early2/kernel/x86/microcode
+GenuineIntel.bin
+$ ls extract/main
+bin  conf  cryptroot  etc  init  lib  lib32  lib64  libx32  run  sbin  scripts  usr  var
+</code></pre>
+<p>ここで解凍した内容に対してchrootすると、Linux起動時のRAM filesystemの内容を擬似的に操作でき、どのような操作ができるか把握することができる。</p>
+<pre><code>$ sudo chroot extract/main /bin/sh
+
+BusyBox v1.30.1 (Ubuntu 1:1.30.1-4ubuntu6.3) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+# ls
+scripts    init       run        etc        var        usr        conf
+lib64      bin        lib        libx32     lib32      sbin       cryptroot
+# pwd
+/
+# which mount
+/usr/bin/mount
+# exit
+</code></pre>
+<p>上記に示す通り、ルートに<code>init</code>というスクリプトファイルが入っており、これが<code>initramfs</code>を展開したのちに起動されるスクリプトである
+このスクリプトを全て解説することはしないが、<code>init</code>スクリプトの中で<code>/proc/cmdline</code>の中身を読んでおり、ここから本来のroot filesystemが格納しているディスク情報（<code>root=/dev/sda1</code>のような記載）を拾い、マウント処理を実施しているようであった。
+一方、この辺りが空の場合、Ubuntu 20.04LTSのinitrdから抜き出したこの<code>init</code>ファイルではエラーになるようだった。</p>
+<p>今回のToyVMMでは以降説明する<code>firecracker-initrd</code>をベースとした<code>initramfs</code>を利用しているためこの辺りの挙動は少し異なる。</p>
+<h4 id="firecracker-initrdについて"><a class="header" href="#firecracker-initrdについて">firecracker-initrdについて</a></h4>
+<p>ToyVMMでは、<a href="https://github.com/marcov/firecracker-initrd">firecracker-initrd</a>を利用させてもらっている。
+firecracker-initrdはAlpineをベースとしてinitrd.img（<code>initramfs</code>）を作成してくれる。
+上記でみたUbuntuのinitrdとは異なり、microcodeなど追加のCPIOファイルは含まれないため、単純に解凍するだけでroot filesystemが確認できる</p>
+<pre><code>$ cat initrd.img | cpio -idv
+$ ls
+bin  dev  etc  home  init  initrd.img  lib  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+</code></pre>
+<p>Alpine Linuxは通常起動時にRAM上にファイルシステムが展開された上でOSが起動する。その後ニーズに応じて<code>setup-alpine</code>でDISKにOSを焼いたりするかなど決定する。
+今回はこのAlpine Linuxのinitを使用しているため、この<code>initramfs</code>を利用して起動したVMは、デフォルトでは本命のルートファイルシステムをマウントせず、単純にRAM上にファイルシステムを展開しAlpine Linuxが起動することになる。<br />
+これは、従来通りのOSのようにboot領域を二次記憶に置いた上で<code>/proc/cmdline</code>でinitスクリプトに伝えるという流れとは異なるものであるということを理解しておきたい。</p>
+<h2 id="boot-sequence-of-linux-kernel-in-toyvmm"><a class="header" href="#boot-sequence-of-linux-kernel-in-toyvmm">Boot sequence of linux kernel in ToyVMM</a></h2>
+<p>ここでこれまで議論してきた内容とToyVMMでのLinuxブートについての比較をしてみる</p>
+<table><thead><tr><th>Boot process (on Linux)</th><th>ToyVMM</th></tr></thead><tbody>
+<tr><td>BIOS</td><td>Not implemented yet</td></tr>
+<tr><td>Boot Loader</td><td><strong>Require: vmlinux/initrd.img loading, basic setup required</strong></td></tr>
+<tr><td>Linux Kernel</td><td>Processed by <code>vmlinux.bin</code></td></tr>
+<tr><td>init</td><td>Processed by <code>init</code> scripts (from firecracker-initrd's <code>initrd.img</code>)</td></tr>
+</tbody></table>
+<p>現在のToyVMMの実装では<code>bzImage</code>の読み込みについてはサポートしておらず、ELFバイナリである<code>vmlinux.bin</code>を利用することとする。
+現時点の実装ではBIOS関係については実装を省略している。<br />
+BootLoaderが行う処理のうち、<code>vmlinux.bin</code>や<code>initrd.img</code>をメモリにロードするなどの処理を実装する必要がある。
+Linux Kernel自体は<code>vmlinux.bin</code>が、<code>init</code>の処理は<code>initrd.img</code>内部の<code>init</code>スクリプトが担当するため、上記の処理を実装することで既存のLinux Kernelを起動すること自体は可能である。
+より詳細の実装については<a href="./02-6_minimal_vmm_implementation.html">02-6_minimal_vmm_implementation</a>で説明する。</p>
+<h2 id="references"><a class="header" href="#references">References</a></h2>
+<ul>
+<li><a href="https://www.hazymoon.jp/OpenBSD/arch/i386/stand/mbr/mbr_structure.html">MBR(Master Boot Records)の構造</a></li>
+<li><a href="https://linux.die.net/man/4/initrd">Initrd(4) - Linux man page</a></li>
+<li><a href="https://gihyo.jp/admin/serial/01/ubuntu-recipe/0384">Initramfsのしくみ</a></li>
+<li><a href="https://wiki.gentoo.org/wiki/Initramfs/Guide/ja">Initramfs/ガイド</a></li>
+<li><a href="https://0xax.gitbooks.io/linux-insides/content/Booting/">Kernel Boot Process</a></li>
+<li><a href="https://www.baeldung.com/linux/initrd-vs-initramfs">What's the Difference Between initrd and initramfs</a></li>
+<li><a href="https://wiki.bit-hive.com/linuxkernelmemo/pg/bzImage">bzImage</a></li>
+<li><a href="http://www.seinan-gu.ac.jp/%7Eshito/old_pages/hacking/shell/sh/boot_shutdown.html">Initデーモンを理解する</a></li>
+<li><a href="https://keichi.dev/post/linux-boot/">Linuxがブートするまで</a></li>
+<li><a href="http://archive.linux.or.jp/JF/JFdocs/kernel-docs-2.6/filesystems/ramfs-rootfs-initramfs.txt.html">filesystems/ramfs-rootfs-initramfs.txt</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="02_load_linux_kernel.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="02-2_elf_binary_format_and_vmlinux_structure.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="02_load_linux_kernel.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="02-2_elf_binary_format_and_vmlinux_structure.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>
