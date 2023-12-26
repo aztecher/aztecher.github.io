@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>04. SMP and CPU specific configuration - toyvmm book (ja)</title>
+        <title>04-3. Intel CPU specific configuration - toyvmm book (ja)</title>
                 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li><li class="chapter-item expanded "><a href="04_smp.html" class="active">SMP and CPU specific configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="04-1_smp_symmetric_multiprocessing.html">04-1. SMP - Symmetric MultuProcessing</a></li><li class="chapter-item expanded "><a href="04-2_common_CPU_configuration.html">04-2. Common CPU configuration</a></li><li class="chapter-item expanded "><a href="04-3_Intel_CPU_specific_configuration.html">04-3. Intel CPU specific configuration</a></li><li class="chapter-item expanded "><a href="04-4_AMD_CPU_specific_configuration.html">04-4. AMD CPU specific configuration</a></li></ol></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li><li class="chapter-item expanded "><a href="04_smp.html">SMP and CPU specific configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="04-1_smp_symmetric_multiprocessing.html">04-1. SMP - Symmetric MultuProcessing</a></li><li class="chapter-item expanded "><a href="04-2_common_CPU_configuration.html">04-2. Common CPU configuration</a></li><li class="chapter-item expanded "><a href="04-3_Intel_CPU_specific_configuration.html" class="active">04-3. Intel CPU specific configuration</a></li><li class="chapter-item expanded "><a href="04-4_AMD_CPU_specific_configuration.html">04-4. AMD CPU specific configuration</a></li></ol></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -146,33 +146,19 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="smp-and-cpu-specific-configuration"><a class="header" href="#smp-and-cpu-specific-configuration">SMP and CPU specific configuration</a></h1>
-<p>このセクションではVMMのSMP（Symmetric MultiProcessing）対応について主題として議論する
-副題としてIntel/AMD特有の設定についても触れることとする</p>
-<p>これまで仮想マシンに割り当てることのできるvCPUの数は1つだった。
-SMPの対応を行うことで、仮想マシンに複数のCPUを割り当てて、複数プロセッサでの並行処理に対応させたい。
-この詳細については <a href="./04-1_smp_symmetric_multiprocessing.html">04-1. SMP - Symmetric MultuProcessing</a>に詳細を記載することとする。</p>
-<p>また、SMPの実装に合わせてコードを変更するついでに、ベンダーの異なる各CPU（Intel・AMD）に対して独自の設定ができるような実装にリファインする。
-共通の設定については <a href="./04-2_common_CPU_configuration.html">04-2. Common CPU configuration</a>、Intel CPUに関する設定については <a href="./04-3_Intel_CPU_specific_configuration.html">04-3. Intel CPU specific configuration</a>、AMD CPUに関する設定については <a href="./04-4_AMD_CPU_specific_configuration.html">04-4. AMD CPU specific configuration</a>で議論することとするが、これらのCPU設定については必要に応じて設定をする類のものが多いこともあり、ベストエフォートで記載を進めることさせてもらう。
-そのため、およびについては不定期に更新が入るものと読者には想定してもらいたい。</p>
-<p>改めて、本セクションの各トピックは次のようになっている</p>
-<ul>
-<li><a href="./04-1_smp_symmetric_multiprocessing.html">04-1. SMP - Symmetric MultuProcessing</a></li>
-<li><a href="./04-2_common_CPU_configuration.html">04-2. Common CPU configuration</a></li>
-<li><a href="./04-3_Intel_CPU_specific_configuration.html">04-3. Intel CPU specific configuration</a></li>
-<li><a href="./04-4_AMD_CPU_specific_configuration.html">04-4. AMD CPU specific configuration</a></li>
-</ul>
-<p>本資料では、上述したとおり不定期に更新が入る想定にしているため、ベースとしているコミットナンバーについては各トピックの話題毎にそれぞれ記載することとする。</p>
+                        <h1 id="intel-cpu-specific-configuration"><a class="header" href="#intel-cpu-specific-configuration">Intel CPU specific configuration</a></h1>
+<p>This content will be added and revised as appropriate.</p>
+<p>Please check the <a href="./04_smp.html">04. SMP</a> for details.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="03-4_virtio-blk.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="04-2_common_CPU_configuration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
-                                                    <a rel="next" href="04-1_smp_symmetric_multiprocessing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                                    <a rel="next" href="04-4_AMD_CPU_specific_configuration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -182,11 +168,11 @@ SMPの対応を行うことで、仮想マシンに複数のCPUを割り当て�
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="03-4_virtio-blk.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="04-2_common_CPU_configuration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
-                                    <a rel="next" href="04-1_smp_symmetric_multiprocessing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                    <a rel="next" href="04-4_AMD_CPU_specific_configuration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                             </nav>
