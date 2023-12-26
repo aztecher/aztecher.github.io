@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html">QuickStart</a></li><li class="chapter-item expanded "><a href="01_running_tiny_code_in_vm.html">Running Tiny Code in VM</a></li><li class="chapter-item expanded "><a href="02_load_linux_kernel.html">Load Linux Kernel</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-1_overview_of_booting_linux.html">02-1. Overview of Booting Linux</a></li><li class="chapter-item expanded "><a href="02-2_elf_binary_format_and_vmlinux_structure.html">02-2. ELF binary format and vmlinux structure</a></li><li class="chapter-item expanded "><a href="02-3_load_initrd.html">02-3. Load initrd</a></li><li class="chapter-item expanded "><a href="02-4_setup_registers_of_vcpu.html">02-4. Setup registers of vcpu</a></li><li class="chapter-item expanded "><a href="02-5_serial_console_implementation.html">02-5. Serial Console implementation</a></li><li class="chapter-item expanded "><a href="02-6_toyvmm_implementation.html">02-6. ToyVMM implementation</a></li></ol></li><li class="chapter-item expanded "><a href="03_virtio.html">Virtio</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-1_virtio.html">03-1. Virtio</a></li><li class="chapter-item expanded "><a href="03-2_implement_virtio_in_toyvmm.html">03-2. Implement virtio in ToyVMM</a></li><li class="chapter-item expanded "><a href="03-3_virtio-net.html">03-3. Implement virtio-net device</a></li><li class="chapter-item expanded "><a href="03-4_virtio-blk.html">03-4. Implement virtio-blk device</a></li></ol></li><li class="chapter-item expanded "><a href="04_smp.html">SMP and CPU specific configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="04-1_smp_symmetric_multiprocessing.html">04-1. SMP - Symmetric MultuProcessing</a></li><li class="chapter-item expanded "><a href="04-2_Intel_CPU_specific_configuration.html">04-2. Intel CPU specific configuration</a></li><li class="chapter-item expanded "><a href="04-3_AMD_CPU_specific_configuration.html">04-3. AMD CPU specific configuration</a></li></ol></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -3357,6 +3357,582 @@ HELLO UBUNTU
 <li><a href="https://blog.bobuhiro11.net/2022/04-12-gokvm6.html">自作VMMのvirtio-blk対応</a></li>
 <li><a href="https://wiki.osdev.org/Virtio#Block_Device_Packets">OSDev.org - Virtio#Block_Device_Packets</a></li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="smp-and-cpu-specific-configuration"><a class="header" href="#smp-and-cpu-specific-configuration">SMP and CPU specific configuration</a></h1>
+<p>このセクションではVMMのSMP（Symmetric MultiProcessing）対応について主題として議論する
+副題としてIntel/AMD特有の設定についても触れることとする</p>
+<p>これまで仮想マシンに割り当てることのできるvCPUの数は1つだった。
+SMPの対応を行うことで、仮想マシンに複数のCPUを割り当てて、複数プロセッサでの並行処理に対応させたい。
+この詳細については <a href="./04-1_smp_symmetric_multiprocessing.html">04-1. SMP - Symmetric MultuProcessing</a>に詳細を記載することとする。</p>
+<p>また、SMPの実装に合わせてコードを変更するついでに、ベンダーの異なる各CPU（Intel・AMD）に対して独自の設定ができるような実装にリファインする。
+共通の設定については <a href="./04-2_common_CPU_configuration.html">04-2. Common CPU configuration</a>、Intel CPUに関する設定については <a href="./04-3_Intel_CPU_specific_configuration.html">04-3. Intel CPU specific configuration</a>、AMD CPUに関する設定については <a href="./04-4_AMD_CPU_specific_configuration.html">04-4. AMD CPU specific configuration</a>で議論することとするが、これらのCPU設定については必要に応じて設定をする類のものが多いこともあり、ベストエフォートで記載を進めることさせてもらう。
+そのため、およびについては不定期に更新が入るものと読者には想定してもらいたい。</p>
+<p>改めて、本セクションの各トピックは次のようになっている</p>
+<ul>
+<li><a href="./04-1_smp_symmetric_multiprocessing.html">04-1. SMP - Symmetric MultuProcessing</a></li>
+<li><a href="./04-2_common_CPU_configuration.html">04-2. Common CPU configuration</a></li>
+<li><a href="./04-3_Intel_CPU_specific_configuration.html">04-3. Intel CPU specific configuration</a></li>
+<li><a href="./04-4_AMD_CPU_specific_configuration.html">04-4. AMD CPU specific configuration</a></li>
+</ul>
+<p>本資料では、上述したとおり不定期に更新が入る想定にしているため、ベースとしているコミットナンバーについては各トピックの話題毎にそれぞれ記載することとする。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="smp---symmetric-multuprocessing"><a class="header" href="#smp---symmetric-multuprocessing">SMP - Symmetric MultuProcessing</a></h1>
+<p>本資料は全て以下のコミットナンバーをベースとしている</p>
+<ul>
+<li>ToyVMM : 2795702addc5fe3d7d42f13a82c5487985237fc8</li>
+<li>Firecracker : 0c3c9fc6a5a7d0815a310c5d2e7624a0fe2118ac</li>
+</ul>
+<p>また、議論のはじめにSMP実装の導入にあたって参考にさせてもらった素晴らしい資料について紹介しておく。
+Nobuhiro Miki氏による<a href="https://blog.bobuhiro11.net/2021/11-25-gokvm3.html">KVMを使った自作VMMのSMP対応</a>は本実装を行うにあたりFirecrackerのソースコードと合わせて大変参考にさせていただいた資料である。
+Nobuhiro Miki氏はGolangによるVMM実装である<a href="https://github.com/bobuhiro11/gokvm">gokvm</a>の作者でもあるため、もしGolangでVMMを実装することに興味がある方は確認してみると良いだろう。
+本資料でも上記の資料の内容は一部参照させていただく。</p>
+<p>本資料ではまず、SMPの話に入る前の基礎知識として、割り込み処理、割り込みコントローラの基礎について簡単に復習する。
+その後にSMPについて詳細に議論していく。</p>
+<h2 id="割り込みinterruptの復習"><a class="header" href="#割り込みinterruptの復習">割り込み（Interrupt）の復習</a></h2>
+<h3 id="割り込みとは"><a class="header" href="#割り込みとは">割り込みとは</a></h3>
+<p>割り込みとは、CPUが処理をしているプログラムの実行に、その名の通り「割り込んで」別のプログラムを実行させる仕組みである。
+CPUはこの割り込みを受け取ると、実行しているプログラムを一旦停止し、その割り込みに対応する処理を実行する。この処理は基本的に事前定義されており、これを割り込みハンドラと呼ぶ。CPUは割り込みハンドラの処理を終了すると、停止していたプログラムを再開する。</p>
+<p>割り込みには「ソフトウェア割り込み」と「ハードウェア割り込み」が存在するが、ここでは特に後者に着目する。基本的に以降「割り込み」と記載した場合は「ハードウェア割り込み」を指すものと思ってほしい。</p>
+<p>割り込みについては検索すると多くの資料がでてくるため、もし読者が割り込みについて基礎知識を習得していない場合は自身で調べてみてほしい。</p>
+<h3 id="割り込みコントローラ"><a class="header" href="#割り込みコントローラ">割り込みコントローラ</a></h3>
+<p>CPUの割り込み端子の数はCPUの種類、実装によって異なるものの、少なくとも一つ、もしくは複数用意される。
+一方で周辺機器は基本的に複数存在するため、割り込み要求もそれらのデバイス数に合わせて増えていくことになる。</p>
+<p>例えば実装として、一つの割り込みハンドラのみを用意し、全ての周辺機器からの割り込みについてそのハンドラで処理をするという形式にすると、ハンドラの実装の中でどの周辺機器からの割り込み要求かを判別する処理が必要になる。</p>
+<p>PC/AT互換機などでは基本的に、ハードウェアとして複数のIRQ端子を用意し、割り込み要因毎に異なるハンドラに処理を移すことができるような形をとっており、この機能を持った回路のことを割り込みコントローラと呼ぶ。</p>
+<h4 id="pic-programmable-interrupt-controller"><a class="header" href="#pic-programmable-interrupt-controller">PIC (Programmable Interrupt Controller)</a></h4>
+<p>割り込みコントローラの代表的な例として、ここでは<a href="https://ja.wikipedia.org/wiki/Intel_8259">Intel 8259</a>を題材として取り上げる。
+Intel 8259はProgrammable Interrupt  Controller（PIC）の一種であり、マルチプレクサの機能、CPUに割り込みをかけるために、複数の周辺機器からの割り込み処理を一つの割り込み出力に束ねる機能を持っている。この割り込みコントローラはIntel 8080時代から使用されているコントローラである。</p>
+<p>Intel 8259は単体で8つのデバイスからの割り込み要求入力（IRQ0~7）に加え、一本の割り込み出力（INTR）、割り込みACK（INTA）、割り込みレベルや割り込みベクタオフセット用の通信ライン（D0-D7）を備えている。
+更に、8259には3つのレジスタがあり、、、と霧がなくなるため、ひとまずはこのあたりで話を止めておく。
+8259は大変有名なPICであり、調べるとたくさんの資料が出てくるので、詳細は各自調べてほしい。</p>
+<p>以下の図は、よく取られるPICを2つカスケード接続してCPUに接続する構成である。
+この構成では最大15個のデバイスから割り込みを受け付けることができる。</p>
+<blockquote>
+<img src="./04_figs/PIC.jpg">
+<p>Reference: <a href="https://www.valinux.co.jp/technologylibrary/document/linux/interrupts0001/">Linux/x86_64の割り込み処理 第一回 割り込みコントローラ</a></p>
+</blockquote>
+<p>上記の図はあくまで単一CPUに対しての構成例であった。
+さて、ではこれをベースにマルチプロセッサシステムを考えた場合に割り込みはどう考えればよいだろうか？</p>
+<p>対処が必要な点としては、CPUが複数になる一方で周辺機器の数はかわらないということで、CPUが単一の場合は全ての割り込みをそのPCUに渡せば良いだけだったため話が単純だったが、複数CPUになると「どの割り込みをどのCPUで処理させるのか？」という新たな問題が浮上してくることになり、これに対応できるような仕組みが必要になってきた。
+これが次に紹介し、また本資料の主題でもあるSMPとも深く関係のあるAPICである。</p>
+<h4 id="apic-advanced-programmable-interrupt-controller"><a class="header" href="#apic-advanced-programmable-interrupt-controller">APIC (Advanced Programmable Interrupt Controller)</a></h4>
+<p>APICはIntelが開発したx86アーキテクチャにおける割り込みコントローラであり、マルチプロセッサシステムに対応するものになっている。</p>
+<p>まず特徴的なのはAPICに２つ種類があることである。
+単一のCPUにそれぞれ存在しているLocal APIC（LAPIC）とデバイスの割り込みを受け付けるI/O APICである。
+LAPICとI/O APICはAPIC Busと呼ばれる線でつながっており、APIC間で割り込みの送受信を行えるようになっている。
+PICでは単一CPUに対してデバイスの割り込みラインが直接つながっていたことがマルチプロセッサ化対応の上での問題だったため、PICの機能を分割しI/Oを受けるPICとCPUに対して割り込みをいれるPICを分けたような形、と考えると割と順当な変化と言えよう。</p>
+<blockquote>
+<img src="./04_figs/APIC.jpg">
+<p>Reference: <a href="https://www.valinux.co.jp/technologylibrary/document/linux/interrupts0001/">Linux/x86_64の割り込み処理 第一回 割り込みコントローラ</a></p>
+</blockquote>
+<p>LAPICは、自身のCPUに対して届いた割り込みを受信し、自身のCPUに対して実際に割り込みをかける役割、及び他CPUに割り込みを送出したりする（IPI: InterProcessor Interrupt）役割を持っている。
+I/O APICは当然ながらデバイスからの割り込みを受けて特定のLAPICにベクタなどを指定して送出する役割を持っている。I/O APICは増設することも可能になっている。</p>
+<p>さて、ここまで簡単に割り込みの復習をしてきたが、つまるところマルチプロセッサ構成の場合はこのLAPIC・I/O APICなどの構成に関する理解が重要になってくるわけである。</p>
+<h2 id="smp-symmetric-multiprocessing"><a class="header" href="#smp-symmetric-multiprocessing">SMP (Symmetric MultiProcessing)</a></h2>
+<p>本題に入って、ToyVMMのマルチプロセッサ対応について話していく。</p>
+<p>まずはマルチプロセッサ対応の話をする上で避けることのできないAPICに関わる話題として割り込みモードの話をし、その後に実際のマルチプロセッサ対応の根幹部分であるMP Configurationの話に移って行くことにする。</p>
+<h3 id="intel-multiprocessor-specification-v14"><a class="header" href="#intel-multiprocessor-specification-v14">Intel MultiProcessor Specification v1.4</a></h3>
+<p>今回の資料はマルチプロセッサシステムの仕様書である<a href="https://pdos.csail.mit.edu/6.828/2008/readings/ia32/MPspec.pdf">Intel MultiProcessor Specification v1.4</a>に従った内容になっている。
+以降の内容は上記の資料から必要最低限の情報をピックアップしたような形になっているため、より詳細を知りたい場合はこのSpecを参照されたい。</p>
+<h3 id="pic-mode-virtual-wire-mode-and-symmetric-io-mode"><a class="header" href="#pic-mode-virtual-wire-mode-and-symmetric-io-mode">PIC Mode, Virtual Wire Mode and Symmetric I/O Mode</a></h3>
+<p>MP specificationではAPICに対して以下の割り込みモードを定義している</p>
+<ul>
+<li>PIC Mode : 全てのAPICコンポーネントをバイパスし、システムをシングルプロセッサモードで動作させる。</li>
+<li>Virtual Wire Mode : APICをVirtual Wireとして利用するが、それ以外はPIC Modeと同様に動作させる。</li>
+<li>Symmetric I/O Mode : 複数プロセッサによるシステム動作を有効にする。</li>
+</ul>
+<p>PIC ModeとVirtual Wire ModeはPC/AT 互換性を保つための割り込みモードであり、これらのいずれかについてシステムは実装している必要がある。
+これらのモードでは、APICを標準のPICである8259A相当のPICと組み合わせて使用することにより、uniprocessor PC/ATと完全なDOS互換性が提供される。</p>
+<p>一方、Symmetric I/O ModeはPIC Mode、もしくはVirtual Wire Modeに追加で実装されるものである。MP Operating Systemはいずれかのモード(PIC Mode or Virtual Wire Mode)で起動し、その後マルチプロセッサモードに移行するとSymmetric I/O Modeに切り替わる。</p>
+<h4 id="pic-mode"><a class="header" href="#pic-mode">PIC Mode</a></h4>
+<p>PIC ModeではBSP(Bootstrap Processor）に到達する割り込み信号がMaster PIC（図中にある8259A-EQUIVALENT PICS）から来るか、Local APICからくるかを制御するIMCR（Interrupt Mode Configuuration Register）が存在しており、必要に応じて適切にAPICコンポーネントをバイパスできるような仕組みになっている。
+図中の点線のラインをみると、Master PICからの割り込みラインがBSPに繋がるような構成になっており、これをIMCRでうまく制御するため、実質的に旧来の割り込み形式と同じ構成で動かすことができるわけである。
+従って、PC/ATと同じハードウェア割り込みコンフィギュレーションを採用でき、互換性があるような形を保てている。</p>
+<blockquote>
+<img src="./04_figs/PIC_Mode.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 3-2. PIC Mode</p>
+</blockquote>
+<p>Symmetric I/O Modeに遷移する前に、BIOSもしくはOSがIMCRの設定を変更しPIC Modeから切り替える必要がある。
+今回はどちらかというと次に説明するVirtual Wire Modeの話が重要なので、PIC Modeにおける具体的なIMCRへの書き込み等に関する話についてはここでは省略する。気になる場合はSpecを参照してもらいたい。</p>
+<h4 id="virtual-wire-mode"><a class="header" href="#virtual-wire-mode">Virtual Wire Mode</a></h4>
+<p>Virtual Wire ModeはPIC Modeとは異なり、下図のようにPICの割り込みラインがBSPのLocal APICのLINTIN0（Local Interrupt 0）を介してBSPへと配送される。
+おそらく、直接的な配線ではなくLocal APICを通した仮想的な配線がなされるように設定をすることから、&quot;Virtual Wire&quot; Modeという名前がついているのだろうと思われる。</p>
+<p>Virtual Wire Modeを実現するために、Local APICの設定をする必要がある。
+すなわち、LINTIN0のピンはExtINT（External Interrupt）としてプログラムされ、8259-EQUIVALENT PICが外部割り込みコントローラとして機能することを指定する必要がある。
+この場合は図からもわかるとおり、Virtual Wire Modeにおける割り込みは8259-EQUIVALENT PICからBSPに創出されるため、このMode中にはI/O APICは利用されない。</p>
+<blockquote>
+<img src="./04_figs/Virtual_Wire_Mode_LocalAPIC.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 3-3. Virtual Wire Mode via Local APIC</p>
+</blockquote>
+<p>一方で、下図に示すようにI/O APICをプログラムしてVirtual Wire Modeを実現する方式も存在するようである。
+この場合、割り込み信号はI/O APICとLocal APICの両方を通過してBSPに配送されるような形になる。</p>
+<blockquote>
+<img src="./04_figs/Virtual_Wire_Mode_IOAPIC.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 3-3. Virtual Wire Mode via I/O APIC</p>
+</blockquote>
+<h4 id="symmetric-io-mode"><a class="header" href="#symmetric-io-mode">Symmetric I/O Mode</a></h4>
+<p>複数プロセッサでの動作を有効にするために、PIC ModeもしくはVirtual Wire Modeを経て、Symmetric I/O Modeに遷移する。
+当然ながらこのモードでは少なくとも一つ以上のI/O APICが必要になり、I/O割り込みはI/O APICによって生成される。8259割り込みラインはマスクされるか、混合モードでI/O APICと一緒に動作することになる。</p>
+<blockquote>
+<img src="./04_figs/Symmetric_IO_Mode.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 3-5. Symmetric I/O Mode</p>
+</blockquote>
+<p>APIC I/Oユニットはgeneral-purpose interrupt inputを持っており、異なる動作モードで個別にプログラムできるようになっている。
+I/O APIC interrupt lineの割り当てはシステムの実装に固有になっており、当然カスタムも可能である。
+デフォルトの実装についてはSpecの5章、カスタムの方法についてはSpecの4章を参考にされたい。ここでは一旦省略とするが後ほどのMP Configurationの話のなかで、カスタムする話が一部出てくることになる。</p>
+<h4 id="virtual-wire-mode-setup-in-toyvmm"><a class="header" href="#virtual-wire-mode-setup-in-toyvmm">Virtual Wire Mode setup in ToyVMM.</a></h4>
+<p>これまでの話をToyVMMの実装に絡めて考えてみる。</p>
+<p>基本的に、PIC ModeやVirtual Wire Mode周りについてはBIOSが処理を行う領域であるため、ToyVMMとしてはこれらを適切に実装する必要がある。
+SpecのAppendix. Aにはありがたいことに「System BIOS Programming Guidelines」という記載が存在しており、これを一部参考にさせてもらった。
+ここではその内容のうち「A.3 Programming the APIC for Virtual Wire Mode」を参考に、ToyVMMに対してVirtual Wire Modeで割り込みモードを動作するように設定を入れていくことにした。</p>
+<p>Virtual Wire Modeではまず、BSPのLocal APICの設定を行って&quot;virtual wire&quot;として動作させ、8259A-EQUIVALENT PICからのCPU割り込みをBSPまでバイパスするように設定する必要がある。</p>
+<p>これには、以下の設定を実施する必要があるらしい。</p>
+<ul>
+<li>BSPのLocal APICのLINT0をEdge-Triggered ExitINT delivery modeに設定</li>
+<li>BSPのLocal APICのLINT1をLevel-Triggered NMI delivery modeに設定</li>
+</ul>
+<p>各Local APICのLINTはどこに存在していて、どのように書き込みなどを実行すればよいかといった詳細については、Specの「Example A-1. Programming Local APIC for Virtual Wire Mode」にも記載があるが、より詳細の理解を伴うために、「<a href="https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html">Intel 64 and IA-32 Architectures Software Developer's Manual Combined Volumes: 1, 2A, 2B, 2C, 2D, 3A, 3B, 3C, 3D, and 4</a>」も参照した。</p>
+<p>このIntel SDMの資料の「11.4 LOCAL APIC」と「11.5 HANDLING LOCAL INTERRUPTS」にLocal APIC、及びLocal Interruptに関するより詳細な仕様の記載がある。
+流石に上記の資料は斜め読みしかしていないが、必要な情報としては概ね以下の２つ図にまとまっていた。</p>
+<blockquote>
+<img src="./04_figs/Local_APIC_Register_Address_Map.png">
+<p>Reference: Intel SDM - Table 11-1. Local APIC Register Address Map</p>
+<img src="./04_figs/Local_Vector_Table.png">
+<p>Reference: Intel SDM - Local Vector Table (LVT)</p>
+</blockquote>
+<p>Table 11-1を見てわかるとおり、Local APICのLINT0は0xFEE00350、LINT1は0xFEE00360に配置されているため、ここをベースとしてderivery modeの変更を加えることになる。
+更に、Figure 11-8を見るとそれぞれのLINTアドレスをベースに8bitオフセットした位置から3bitでDelivery Modeが表現されることがわかる。NMIを設定する場合は0b100、ExtINTを設定する場合は0b111を書き込むと良さそうだ。</p>
+<p>また、Edge/Level Triggerを設定する場合は、それぞれのLINTのアドレスの15bit目を変更することで制御できるようだ。
+しかし、どうもBIOSのサンプルコードもFirecrackerのコードもこの部分に関しては特にいじっていないように見える。
+今回は一旦Firecrackerを参考にLINT0, LINT1のDelivery Modeを変更するのみとした。</p>
+<p>ToyVMMでの実装を以下に示す。これはFirecrackerの実装をそのまま引用させてもらっている。
+以下のコードでは、LINT0、LINT1のアドレスオフセットを0x350、0x360として処理しているように見えるが、これは<code>vcpu.get_lapic</code>で取得してきた値（これは0xFEE00000が開始アドレスで、そこからLocal APIC分だけ読み出している値）に対して処理をしているからである。</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Defines poached from apicdef.h kernel header
+const APIC_LVT0: usize = 0x350;
+const APIC_LVT1: usize = 0x360;
+const APIC_MODE_NMI: u32 = 0x4; // 0x4 = 0b100
+const APIC_MODE_EXTINT: u32 = 0x7; // 0x7 = 0b111
+
+fn get_klapic_reg(klapic: &amp;kvm_lapic_state, reg_offset: usize) -&gt; u32 {
+    let range = reg_offset..reg_offset + 4;
+    let reg = klapic.regs.get(range).expect(&quot;get_klapic_reg range&quot;);
+    byte_order::read_le_i32(reg) as u32
+}
+
+fn set_klapic_reg(klapic: &amp;mut kvm_lapic_state, reg_offset: usize, value: u32) {
+    let range = reg_offset..reg_offset + 4;
+    let reg = klapic.regs.get_mut(range).expect(&quot;set_klapic_reg range&quot;);
+    byte_order::write_le_i32(reg, value as i32)
+}
+
+fn set_apic_delivery_mode(reg: u32, mode: u32) -&gt; u32 {
+    // !0x700 = 0b1000_1111_1111
+    // (AND)    0bRRRR_RRRR_RRRR (reg)
+    // --------------------------
+    //          0bR000_RRRR_RRRR
+    // (OR)     0b0MMM_0000_0000 (mode)
+    // --------------------------
+    //        = 0bRMMM_RRRR_RRRR (Write mode bits to 8~11 bit)
+    ((reg) &amp; !0x700) | ((mode) &lt;&lt; 8)
+}
+
+// Configure LAPICs. LAPIC0 set for external interrupts. LAPIC1 is set for NMI
+pub fn set_lint(vcpu: &amp;VcpuFd) -&gt; Result&lt;(), InterruptError&gt; {
+    let mut klapic = vcpu.get_lapic().map_err(InterruptError::GetLapic)?;
+    let lvt_lint0 = get_klapic_reg(&amp;klapic, APIC_LVT0);
+    set_klapic_reg(
+        &amp;mut klapic,
+        APIC_LVT0,
+        set_apic_delivery_mode(lvt_lint0, APIC_MODE_EXTINT),
+    );
+    let lvt_lint1 = get_klapic_reg(&amp;klapic, APIC_LVT1);
+    set_klapic_reg(
+        &amp;mut klapic,
+        APIC_LVT1,
+        set_apic_delivery_mode(lvt_lint1, APIC_MODE_NMI),
+    );
+    vcpu.set_lapic(&amp;klapic).map_err(InterruptError::SetLapic)
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>ここまでの議論でBSPのLAPICの設定としてVirtual Wire Modeの設定を実施する話をした。
+以降では、SMPの根幹であるMP Configuration Tableについての議論を行う。</p>
+<h4 id="mp-floating-pointer-table"><a class="header" href="#mp-floating-pointer-table">MP Floating Pointer Table</a></h4>
+<p>ここからは具体的にMP Configurationの話に移っていく。</p>
+<p>まず第一に、MP準拠システムでは「MP Floating Pointer Structure」の実装が必要になる。
+システムがMPの仕様に準拠しているかどうかを判断するために、OSはこのMP Floating Pointer Structure構造体を以下の順序で検索する</p>
+<ol>
+<li>拡張BIOSデータ領域（EBDA）の最初の1キロバイト</li>
+<li>EBDAセグメントが未定義の場合、システム・ベース・メモリの最後の1キロバイト内</li>
+<li>In the BIOS ROM address space between 0F0000h and 0FFFFFh.</li>
+</ol>
+<p>この構造が存在する場合、OSはそのシステムをはMP準拠のシステムであると解釈する。
+この構造体は後述する「MP Configuration Table」への物理アドレスのポインタを格納していることを期待する。
+MP Configuration Tableへのポインタがない場合はシステムのデフォルト設定が利用されるような挙動になるらしいが、その話はここでは省略する。</p>
+<blockquote>
+<img src="./04_figs/MP_Floating_Pointer_Structure.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 4-2. MP Floating Pointer Structure</p>
+</blockquote>
+<p>以下に、MP Floating Pointer Structureの一部のフィールドについて記載する。
+全てのフィールドについての詳細はSpecを参照されたい。</p>
+<table><thead><tr><th>Field</th><th>Offset<br>(in bytes:bits)</th><th>Length<br>(in bits)</th><th>Description</th></tr></thead><tbody>
+<tr><td>Signature</td><td>0</td><td>32</td><td>検索キーとなる <code>_MP_</code> というASCII文字列</td></tr>
+<tr><td>Physical Address Pointer</td><td>4</td><td>32</td><td>MP Configuration Tableの先頭アドレス</td></tr>
+<tr><td>Length</td><td>8</td><td>8</td><td>Paragraph(16byte)単位の本テーブル長</td></tr>
+<tr><td>Spec Rev</td><td>9</td><td>8</td><td>サポートされるMP Specのバージョン</td></tr>
+<tr><td>Checksum</td><td>10</td><td>8</td><td>完全なポインタ構造体のチェックサム</td></tr>
+</tbody></table>
+<p>ToyVMMでの実装の観点から考えると、ゲストアドレスのEBDAの領域にこの構造を構築すれば良いことになる。
+特にLinux Kernelでは、MP Floating Pointer Tableは<code>mpf_intel</code>という名称の構造体で定義されているため、これを利用してゲストOSのメモリにMP Floating Pointer Tableをセットアップすれば良い。</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>{
+    let mut mpf_intel = mpspec::mpf_intel {
+        signature: SMP_MAGIC_IDENT, // _MP_
+        physptr: (base_mp.raw_value() + size) as u32, // phys addr for MP Configuration Table
+        length: 1,
+        specification: 4,
+        ..mpspec::mpf_intel::default()
+    };
+    mpf_intel.checksum = mpf_intel_compute_checksum(&amp;mpf_intel);
+    // write mpf_intel to guest memory
+    ...
+}
+<span class="boring">}
+</span></code></pre></pre>
+<h4 id="mp-configuration-table"><a class="header" href="#mp-configuration-table">MP Configuration Table</a></h4>
+<p>MP Configuration Tableは上述した、MP Floating Pointer TableのPhysical Address Pointerの値の先に格納されているデータ構造である。
+MP Configuration TableをここではHeaderとEntriesの2種類に分けて議論する。</p>
+<p>MP Configuration Table Headerはベースアドレスの最初に構築されるヘッダー部になる。<br />
+上記のHeaderに続いて、MP Configuration Table Entryが続くが、このEntryには種類があり、その種類によってエントリの内容はもちろん、エントリ長も変わってくることになる。またエントリの数も任意の数になる。<br />
+MP Configuration Table EntriesはBase sectionとExtended sectionに別れていると仕様書に記載があるが、今回の実装ではBase sectionの話しか出てこないので後者は省略する。</p>
+<h4 id="mp-configuration-table-header"><a class="header" href="#mp-configuration-table-header">MP Configuration Table Header</a></h4>
+<p>MP Configuration Table Headerは以下のフォーマットになっている</p>
+<blockquote>
+<img src="./04_figs/MP_Configuration_Table_Header.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 4-3. MP Configuration Table Header</p>
+</blockquote>
+<p>以下に、MP Configuration Table Headerの一部のフィールドについて記載する。</p>
+<table><thead><tr><th>Field</th><th>Offset<br>(in bytes:bits)</th><th>Length<br>(in bits)</th><th>Description</th></tr></thead><tbody>
+<tr><td>Signature</td><td>0</td><td>32</td><td>テーブルの存在を示す <code>PCMP</code> というASCII文字列</td></tr>
+<tr><td>Base Table Length</td><td>4</td><td>16</td><td>Configuration tableのバイト長</td></tr>
+<tr><td>Spec Rev</td><td>6</td><td>8</td><td>MP Specのバージョン</td></tr>
+<tr><td>Checksum</td><td>7</td><td>8</td><td>Base configuration table全体のchecksum</td></tr>
+<tr><td>OEM ID</td><td>8</td><td>64</td><td>システムハードウェアの製造会社を示す文字列</td></tr>
+<tr><td>PRODUCT ID</td><td>16</td><td>96</td><td>プロダクトファミリを示す文字列</td></tr>
+<tr><td>Address of Local APIC</td><td>36</td><td>32</td><td>各CPUがLAPICにアクセスする際のベースアドレス</td></tr>
+</tbody></table>
+<p>Linux Kernelではこのheaderは<code>mpc_table</code>という構造体に対応しているようである。<br />
+Base Table Lengthに格納する値は、その後に続くConfiguration Tableのバイト長さになるが、これは前述したとおりエントリの種類と数が可変のため注意が必要である。ToyVMMの実装としてはこれらのエントリを作成したあとに、エントリ長の情報を埋めたこのHeaderをメモリ上に書き込む実装にしている。<br />
+また、Specの「3.1 System Memory Configuration」の節にLocal APICのデフォルトのベースアドレスは<code>0xFEE0_0000</code>と記載があるためこれに従って設定する。</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>{
+    let mut mpc_table = mpspec::mpc_table {
+        signature: MPC_SIGNATURE, // PCMP
+        length: table_end.unchecked_offset_from(table_base) as u16,
+        spec: MPC_SPEC, // 4
+        oem: MPC_OEM, // TOYVMM
+        productid: MPC_PRODUCT_ID, // 0
+        lapic: APIC_DEFAULT_PHYS_BASE, // 0xfee0_0000
+        ..Default::default()
+    };
+    checksum = checksum.wrapping_add(compute_checksum(&amp;mpc_table));
+    mpc_table.checksum = (!checksum).wrapping_add(1) as i8;
+    // write mpc_table to guest memory
+    ...
+}
+<span class="boring">}
+</span></code></pre></pre>
+<h4 id="base-mp-configuration-table-entries"><a class="header" href="#base-mp-configuration-table-entries">Base MP Configuration Table Entries</a></h4>
+<p>上記のHeaderに続いて、MP Configuration Table Entryが続くが、このEntryには種類があり、その種類によってエントリの内容はもちろん、エントリ長も変わってくることになる。またエントリの数も任意の数になる。</p>
+<p>具体的に、MP Configuration Table Entryには以下の種別が存在する</p>
+<table><thead><tr><th>Entry Description</th><th>Entry Type Code</th><th>Length</th><th>Commnets</th></tr></thead><tbody>
+<tr><td>Processor</td><td>0</td><td>20</td><td>One entry per processor</td></tr>
+<tr><td>Bus</td><td>1</td><td>8</td><td>One entry per bus</td></tr>
+<tr><td>I/O APIC</td><td>2</td><td>8</td><td>One entry per I/O APIC</td></tr>
+<tr><td>I/O Interrupt Assignment</td><td>3</td><td>8</td><td>One entry per bus interrupt source</td></tr>
+<tr><td>Local Interrupt Assignment</td><td>4</td><td>8</td><td>One entry per system interrupt source</td></tr>
+</tbody></table>
+<p>以降では、それぞれのEntryについての詳細を以下に記載していく。</p>
+<p><strong>Processor Entry</strong></p>
+<p>Processor entryのフォーマットは以下のような形になっている</p>
+<blockquote>
+<img src="./04_figs/Processor_Entry.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 4-4. Processor Entry</p>
+</blockquote>
+<p>以下に、Processor Entryのフィールドについて記載する</p>
+<table><thead><tr><th>Field</th><th>Offset<br>(in bytes:bits)</th><th>Length<br>(in bits)</th><th>Description</th></tr></thead><tbody>
+<tr><td>ENTRY TYPE</td><td>0</td><td>8</td><td>Processorエントリを示す0を入れる</td></tr>
+<tr><td>LOCAL APIC ID</td><td>1</td><td>8</td><td>そのプロセッサのLocal APIC ID</td></tr>
+<tr><td>LOCAL APIC Version</td><td>2</td><td>8</td><td>APIC version register(Bits: 0-7)</td></tr>
+<tr><td>CPU Flags:EN</td><td>3:0</td><td>1</td><td>0の場合はプロセッサを使わない</td></tr>
+<tr><td>CPU Flags:BP</td><td>3:1</td><td>1</td><td>Bootstrapプロセッサとして設定</td></tr>
+<tr><td>CPU Signature STEPPING</td><td>4:0</td><td>4</td><td>SpecのTable 4-5を参照されたい</td></tr>
+<tr><td>CPU Signature MODEL</td><td>4:4</td><td>4</td><td>SpecのTable 4-5を参照されたい</td></tr>
+<tr><td>CPU Signature FAMILY</td><td>5:0</td><td>4</td><td>SpecのTable 4-5を参照されたい</td></tr>
+<tr><td>FEATURE FLAGS</td><td>8</td><td>32</td><td>CPUの機能定義フラグ<br>SpecのTable 4-6を参照されたい</td></tr>
+</tbody></table>
+<p>Descriptionに記載している通り、CPUの詳細な情報についてはSpecの4-5, 4-6を参照されたい。
+Linux KernelではこのEntryは<code>mpc_cpu</code>という構造体に対応しているようである。</p>
+<p>ToyVMMのマルチプロセッサ対応にあたって、この<code>mpc_cpu</code>のエントリはCPUの個数分作ることになる。
+Local APIC IDにはそのCPUの番号と同じ番号を割り当てることとした。
+最初のCPUのセットアップ時のみCPU Flags:BPを立て、そのCPUをBootstrap Processor(BSP)として登録する。
+CPU SigunatureとしてはSpecのTable4-5ではFeature processor向けになっているReservedな値を設定しておくことにする。
+また、CPU Feature FlagとしてはFPU（On-chip Floating Point Unit）とAPIC（On-chip APIC）を有効にしておく。</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>{
+    let size = mem::size_of::&lt;mpspec::mpc_cpu&gt;() as u64;
+    for cpu_id in 0..num_cpus {
+        let mpc_cpu = mpspec::mpc_cpu {
+            type_: mpspec::MP_PROCESSOR as u8, // MP_PROCESSOR = 0
+            apicid: cpu_id,
+            apicver: APIC_VERSION, // 0x14=0b0001_0100
+            cpuflag: mpspec::CPU_ENABLED as u8 // CPU_ENABLED = 1
+                | if cpu_id == 0 {
+                    mpspec::CPU_BOOTPROCESSOR as u8 // CPU_BOOTPROCESSOR = 2
+                } else {
+                    0
+                },
+            cpufeature: CPU_STEPPING, // 0b0110_0000_0000
+            featureflag: CPU_FEATURE_APIC | CPU_FEATURE_FPU, // 0b0010_0000_0001
+            ..Default::default()
+        };
+        // write mpc_cpu to guest memory
+        ...
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p><strong>Bus Entry</strong></p>
+<p>Bus entryのフォーマットは以下のような形になっている</p>
+<blockquote>
+<img src="./04_figs/Bus_Entry.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 4-5. Bus Entry</p>
+</blockquote>
+<p>以下に、Bus Entryのフィールドについて記載する</p>
+<table><thead><tr><th>Field</th><th>Offset<br>(in bytes:bits)</th><th>Length<br>(in bits)</th><th>Description</th></tr></thead><tbody>
+<tr><td>ENTRY TYPE</td><td>0</td><td>8</td><td>Busエントリを示す1を入れる</td></tr>
+<tr><td>Bus ID</td><td>1</td><td>8</td><td>Bus ID (Bus毎にユニークな値)</td></tr>
+<tr><td>Bus Type String</td><td>2</td><td>48</td><td>Busの種類を示す文字列(Table 4-8)</td></tr>
+</tbody></table>
+<p>Descriptionに記載している通り、Busの種類についてはSpecの4-8を参照されたい。
+Linux KernelではこのEntryは<code>mpc_bus</code>という構造体に対応しているようである。
+今回、BusはISAの種類のバスを1本のみ準備することした。</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>{
+    let size = mem::size_of::&lt;mpspec::mpc_bus&gt;() as u64;
+    let mpc_bus = mpspec::mpc_bus {
+        type_: mpspec::MP_BUS as u8,
+        busid: 0,
+        bustype: BUS_TYPE_ISA,
+    };
+    // write mpc_bus to guest memory
+    ...
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p><strong>I/O APIC Entry</strong></p>
+<p>I/O APIC entryのフォーマットは以下のような形になっている</p>
+<blockquote>
+<img src="./04_figs/IO_APIC_Entry.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 4-6. I/O APIC Entry</p>
+</blockquote>
+<p>以下に、I/O APIC Entryのフィールドについて記載する</p>
+<table><thead><tr><th>Field</th><th>Offset<br>(in bytes:bits)</th><th>Length<br>(in bits)</th><th>Description</th></tr></thead><tbody>
+<tr><td>ENTRY TYPE</td><td>0</td><td>8</td><td>I/O APIC エントリを示す2を入れる</td></tr>
+<tr><td>I/O APIC ID</td><td>1</td><td>8</td><td>このI/O APICのID</td></tr>
+<tr><td>I/O APIC Version #</td><td>2</td><td>8</td><td>I/O APICのバージョンレジスタのBit (0-7)</td></tr>
+<tr><td>I/O APIC FLAGS: EN</td><td>3:0</td><td>1</td><td>0の場合、このI/O APICは利用されない</td></tr>
+<tr><td>I/O APIC Address</td><td>4</td><td>32</td><td>このI/O APICのベースアドレス</td></tr>
+</tbody></table>
+<p>Linux KernelではこのEntryは<code>mpc_ioapic</code>という構造体に対応しているようである。
+I/O APIC IDとしては、CPU Entryを作成するときにLAPICに割り振ったIDと被らないように、ID = Num of CPU + 1 とした。
+Specの「3.1 System Memory Configuration」の節にI/O APICのデフォルトのベースアドレスは<code>0xFEC0_0000</code>と記載があるためこれに従って設定する。</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>{
+    let size = mem::size_of::&lt;mpspec::mpc_ioapic&gt;() as u64;
+    let mpc_ioapic = mpspec::mpc_ioapic {
+        type_: mpspec::MP_IOAPIC as u8,
+        apicid: ioapicid,
+        apicver: APIC_VERSION, // 0x14=0b0001_0100
+        flags: mpspec::MPC_APIC_USABLE as u8, // MPC_APIC_USABLE = 1
+        apicaddr: IO_APIC_DEFAULT_PHYS_BASE, // 0xfec0_0000
+    };
+    // write mpc_ioapic to guest memory
+    ...
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p><strong>I/O Interrupt Assignment Entry</strong></p>
+<p>このエントリは、各I/O APICの割り込み入力に接続されている割り込みソースを示す。
+接続されているI/O APICの割り込み入力毎に1つのエントリが存在している。</p>
+<blockquote>
+<img src="./04_figs/IO_Interrupt_Assignment_Entry.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 4-7. I/O Interrupt Entry</p>
+</blockquote>
+<p>以下に、I/O Interrupt Assignment Entryのフィールドについて記載する</p>
+<table><thead><tr><th>Field</th><th>Offset<br>(in bytes:bits)</th><th>Length<br>(in bits)</th><th>Description</th></tr></thead><tbody>
+<tr><td>ENTRY TYPE</td><td>0</td><td>8</td><td>I/O interrupt エントリを示す3を入れる</td></tr>
+<tr><td>Interrupt Type</td><td>1</td><td>8</td><td>以下のInterrupt Type ValueのTableを参照</td></tr>
+<tr><td>I/O Interrupt Flag: PO</td><td>2:0</td><td>2</td><td>Polarity of APIC I/O input signals(詳細はSpecを参照)</td></tr>
+<tr><td>I/O Interrupt Flag: EL</td><td>2:2</td><td>2</td><td>Trigger of APIC I/O input signals(詳細はSpecを参照)</td></tr>
+<tr><td>Source Bus ID</td><td>4</td><td>32</td><td>割り込み信号が来るバスのID</td></tr>
+<tr><td>Source Bus IRQ</td><td>4</td><td>32</td><td>Source busからの割り込み信号の識別子</td></tr>
+<tr><td>Dest I/O APIC ID</td><td>4</td><td>32</td><td>信号が接続されているI/O APICを識別する</td></tr>
+<tr><td>Dest I/O APIC INTIN#</td><td>4</td><td>32</td><td>信号が接続されているINTIN #n ピンを識別する</td></tr>
+</tbody></table>
+<p>また、Interrupt Typeに指定する、Interrupt Type Valueは以下のテーブルである。</p>
+<table><thead><tr><th>Interrupt Type</th><th>Description</th><th>Comments</th></tr></thead><tbody>
+<tr><td>0</td><td>INT</td><td>信号はベクタ割り込みである。<br>ベクタはAPICのredirection tableから供給される</td></tr>
+<tr><td>1</td><td>NMI</td><td>信号はNon Maskable割り込みである</td></tr>
+<tr><td>2</td><td>SMI</td><td>信号はSystem Management割り込みである</td></tr>
+<tr><td>3</td><td>ExtINT</td><td>信号はベクタ割り込みである。<br>ベクタはexternal PICから供給される</td></tr>
+</tbody></table>
+<p>Linux KernelではこのEntryは<code>mpc_intsrc</code>という構造体に対応しているようである。
+ここではIRQ 0-23の全てを、そのままのIRQ番号で対応付けるよな設定をI/O APICに対して実施している。
+BusとしてはBus Entryで設定したバス番号0（ISAバスとして設定しているもの）を指定し、I/O APICの番号もI/O APIC Entryで設定したものを指定している。</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>for i in 0..=u8::try_from(IRQ_MAX).map_err(|_| MptableError::TooManyIrqs)? { // IRQ_MAX = 23
+    let size = mem::size_of::&lt;mpspec::mpc_intsrc&gt;() as u64;
+    let mpc_intsrc = mpspec::mpc_intsrc {
+        type_: mpspec::MP_INTSRC as u8,
+        irqtype: mpspec::mp_irq_source_types_mp_INT as u8, // Interrupt Type = 0
+        irqflag: mpspec::MP_IRQPOL_DEFAULT as u16, // irqflag = 0
+        srcbus: 0,
+        srcbusirq: i,
+        dstapic: ioapicid,
+        dstirq: i,
+    };
+    // write mpc_intsrc to guest memory
+    ...
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p><strong>Local Interrupt Assignment Entry</strong></p>
+<p>このエントリは、各Local APICのローカル割り込み入力に接続されている割り込みソースを示す。</p>
+<blockquote>
+<img src="./04_figs/Local_Interrupt_Assignment_Entry.png">
+<p>Reference: Intel MultiProcessor Specification v1.4 - Figure 4-8. Local Interrupt Entry</p>
+</blockquote>
+<p>以下に、Local Interrupt Assignment Entryのフィールドについて記載する</p>
+<p>| Field                  | Offset<br>(in bytes:bits) | Length | Description                               |
+| Field                  | Offset<br>(in bytes:bits) | Length<br>(in bits) | Description |
+|------------------------|--------|--------|--------------------------------------------------------------|
+| ENTRY TYPE             | 0      | 8      | Local interrupt エントリを示す4を入れる                      |
+| Interrupt Type         | 1      | 8      | 前述したInterrupt Type ValueのTableを参照                    |
+| I/O Interrupt Flag: PO | 2:0    | 2      | Polarity of APIC I/O local input signals（詳細はSpecを参照)  |
+| I/O Interrupt Flag: EL | 2:2    | 2      | Trigger of APIC I/O local input signals                      |
+| Source Bus ID          | 4      | 32     | 割り込み信号が来るバスのID                                   |
+| Source Bus IRQ         | 4      | 32     | Source busからの割り込み信号の識別子                         |
+| Dest Local APIC ID     | 4      | 32     | 信号が接続されているlocal APICを識別する。<br>0xFFの場合シグナルは全てのlocal APICsに接続される |
+| Dest Local APIC INTIN# | 4      | 32     | 信号が接続されているINTIN #n ピンを識別する                  |</p>
+<p>Linux KernelではこのEntryは<code>mpc_lintsrc</code>という構造体に対応しているようである。
+FirecrackerやCrosVMではここのエントリを以下のように設定していたが、正直この設定については意図が掴みきれていないため今の自分の知識では説明できない。
+もし詳細がわかったら追記することとするが、逆に詳しい人はIssueなどで教えてほしい。
+実際のところ、このエントリ部分を消してもに問題なくOSは起動するし、複数プロセッサは利用できる。ただ、割り込みに関する設定なので確認が不十分である節は否めない。
+ToyVMMではFirecrecker、CrosVMに習ってここは同じ実装を入れておくことにした。</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>{
+    let size = mem::size_of::&lt;mpspec::mpc_lintsrc&gt;() as u64;
+    let mpc_lintsrc = mpspec::mpc_lintsrc {
+        type_: mpspec::MP_LINTSRC as u8,
+        irqtype: mpspec::mp_irq_source_types_mp_ExtINT as u8,
+        irqflag: mpspec::MP_IRQPOL_DEFAULT as u16,
+        srcbusid: 0,
+        srcbusirq: 0,
+        destapic: 0,
+        destapiclint: 0,
+    };
+    // write mpc_intsrc to guest memory
+    ...
+}
+{
+    let size = mem::size_of::&lt;mpspec::mpc_lintsrc&gt;() as u64;
+    let mpc_lintsrc = mpspec::mpc_lintsrc {
+        type_: mpspec::MP_LINTSRC as u8,
+        irqtype: mpspec::mp_irq_source_types_mp_NMI as u8,
+        irqflag: mpspec::MP_IRQPOL_DEFAULT as u16,
+        srcbusid: 0,
+        srcbusirq: 0,
+        destapic: 0xFF,
+        destapiclint: 1,
+    };
+    // write mpc_intsrc to guest memory
+    ...
+}
+<span class="boring">}
+</span></code></pre></pre>
+<h3 id="toyvmm-implementation"><a class="header" href="#toyvmm-implementation">ToyVMM Implementation</a></h3>
+<p>ToyVMMにおけるMPTableの実装は <code>src/vmm/src/arch/x86_64/mptable.rs</code> に存在している。
+このコードを読み解くのは難しくはない。<code>setup_mptable</code>という関数の中でSpecificationにしたがってゲストメモリ上にMPTableの構造を作成していっているだけである。
+更に、それぞれのエントリの内容についてはすでに上記で見てきたとおりであり、それを適切なアドレス位置に書き込んでいるだけなのでここでは特に説明することはないだろう。</p>
+<p>加えて、各CPU毎にセットアップを実施したり、各CPU毎に<code>KVM_RUN</code>を実行するThreadを生成する必要があるがこれも軽微な修正なので特にここでは言及しない。</p>
+<p>実際に上記の実装を終え、ToyVMMの起動時に渡す設定ファイルのCPUの数を増やすと、増やし多分のCPUを利用できるようになった。</p>
+<pre><code>$ cat examples/vm_config.json
+{
+        &quot;boot-source&quot;: {
+                &quot;kernel_path&quot;: &quot;./vmlinux.bin&quot;,
+                &quot;boot_args&quot;: &quot;console=ttyS0 reboot=k panic=1&quot;
+        },
+        &quot;drives&quot;: [
+                {
+                        &quot;path_on_host&quot;: &quot;./ubuntu-18.04.ext4&quot;,
+                        &quot;is_root_device&quot;: true
+                }
+        ],
+        &quot;machine-config&quot;: {
+                &quot;vcpu_count&quot;: 2,
+                &quot;mem_size_mib&quot;: 2048,
+                &quot;track_dirty_page&quot;: false
+        }
+}
+
+# VM起動
+$ sudo ./build/release/toyvmm vm run --config examples/vm_config.json
+
+# dmesgを抜粋するとMPTableを読み込んで複数CPUがセットアップできているのを確認できる。
+[    0.000000] Intel MultiProcessor Specification v1.4
+[    0.000000] MPTABLE: OEM ID: TOYVMM
+[    0.000000] MPTABLE: Product ID: 000000000000
+[    0.000000] MPTABLE: APIC at: 0xFEE00000
+[    0.000000] Processor #0 (Bootup-CPU)
+[    0.000000] Processor #1
+[    0.000000] IOAPIC[0]: apic_id 3, version 17, address 0xfec00000, GSI 0-23
+[    0.000000] Processors: 2
+[    0.000000] smpboot: Allowing 2 CPUs, 0 hotplug CPUs
+
+# VM起動後、内部で複数CPUが確認できる
+root@7e47bb8f2f0a:~# cat /proc/cpuinfo | grep processor
+processor       : 0
+processor       : 1
+</code></pre>
+<h2 id="references-5"><a class="header" href="#references-5">References</a></h2>
+<ul>
+<li><a href="https://blog.bobuhiro11.net/2021/11-25-gokvm3.html">KVMを使った自作VMMのSMP対応</a></li>
+<li><a href="https://pdos.csail.mit.edu/6.828/2008/readings/ia32/MPspec.pdf">Intel MultiProcessor Specification v1.4</a></li>
+<li><a href="https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html">Intel 64 and IA-32 Architectures Software Developer's Manual Combined Volumes: 1, 2A, 2B, 2C, 2D, 3A, 3B, 3C, 3D, and 4</a></li>
+<li><a href="https://mmi.hatenablog.com/entry/2017/03/27/202656">Local APICについて</a></li>
+<li><a href="https://mmi.hatenablog.com/entry/2017/04/09/132708">I/O APICについて</a></li>
+<li><a href="https://www.valinux.co.jp/technologylibrary/document/linux/interrupts0001/">Linux / x86_64の割り込み処理 第1回 割り込みコントローラ</a></li>
+<li><a href="https://events19.linuxfoundation.org/wp-content/uploads/2017/11/A-Major-Overhaul-of-the-APIC-Initialization-and-Vector-Allocation-in-Linux-Kernel-OSS-Dou-Liyang.pdf">Kernel Interrupt: A Major Overhaul</a></li>
+<li><a href="https://ja.wikipedia.org/wiki/%E5%89%B2%E3%82%8A%E8%BE%BC%E3%81%BF_(%E3%82%B3%E3%83%B3%E3%83%94%E3%83%A5%E3%83%BC%E3%82%BF)">割り込み(コンピュータ)</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="04-2-intel-cpu-specific-configuration"><a class="header" href="#04-2-intel-cpu-specific-configuration">04-2. Intel CPU specific configuration</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="04-3-amd-cpu-specific-configuration"><a class="header" href="#04-3-amd-cpu-specific-configuration">04-3. AMD CPU specific configuration</a></h1>
 
                     </main>
 
